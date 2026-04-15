@@ -1,0 +1,108 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: white;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 90%;
+    max-width: 500px;
+    margin: auto;
+    padding-top: 30px;
+}
+
+h1 {
+    text-align: center;
+    color: #38bdf8;
+}
+
+.card {
+    background: #1e293b;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+input {
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    outline: none;
+}
+
+button {
+    padding: 10px 15px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #38bdf8;
+    color: black;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #0ea5e9;
+    transform: scale(1.05);
+}
+
+.actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.actions button {
+    flex: 1;
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+/* ================= MODAL ================= */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+}
+
+.modal-content {
+    background: #1e293b;
+    width: 90%;
+    max-width: 350px;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.modal-content input {
+    margin-top: 10px;
+}
+
+#cooldown {
+    margin-top: 10px;
+    color: #fbbf24;
+    font-weight: bold;
+}
+
+#message {
+    margin-top: 10px;
+    color: #22c55e;
+    font-weight: bold;
+}

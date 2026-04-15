@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LCM Mining</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>⛏️ LCM Mining</h1>
+
+    <!-- ================= AUTH SECTION ================= -->
+    <div id="authSection" class="card">
+
+        <h3>Account Access</h3>
+
+        <input id="username" placeholder="Username">
+        <input id="password" type="password" placeholder="Password">
+
+        <div class="buttons">
+            <button onclick="login()">Login</button>
+            <button onclick="openRegister()">Register</button>
+        </div>
+
+    </div>
+
+    <!-- ================= DASHBOARD ================= -->
+    <div id="dashboard" class="card" style="display:none;">
+
+    <div class="actions">
+        <button id="mineBtn" onclick="mine()">⛏️ Mine</button>
+        <button onclick="upgrade()">⬆️ Upgrade</button>
+    </div>
+
+    <!-- 💰 STATS -->
+    <p>💰 Balance: <span id="balance">0</span> LCM</p>
+    <p>⭐ Level: <span id="level">1</span></p>
+
+    <!-- ⏳ LIVE COOLDOWN (THIS IS THE IMPORTANT PART) -->
+    <p id="cooldown">⏳ Loading timer...</p>
+
+    <!-- 🔘 CHECK BUTTON (OPTIONAL MANUAL CHECK) -->
+    <button onclick="checkMineTime()">⏳ Check Time</button>
+
+    <!-- 📢 MESSAGE AREA -->
+    <p id="message"></p>
+
+    <!-- 🚪 LOGOUT -->
+    <button onclick="logout()">🚪 Logout</button>
+
+</div>
+<!-- ================= REGISTER MODAL ================= -->
+<div id="registerModal" class="modal">
+
+    <div class="modal-content">
+
+        <h3>Create Account</h3>
+
+        <input id="reg_name" placeholder="Full Name">
+        <input id="reg_username" placeholder="Username">
+        <input id="reg_email" placeholder="Email">
+        <input id="reg_password" type="password" placeholder="Password">
+        <input id="reg_referral" placeholder="Referral Code (optional)">
+
+        <button onclick="register()">Register</button>
+        <button onclick="closeRegister()">Close</button>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
