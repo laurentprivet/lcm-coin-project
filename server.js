@@ -2,105 +2,113 @@ const express = require("express");
 const mongoose = require("mongoose");
 
 const app = express();
-const PORT = 3000;
+
+// ✅ IMPORTANT FOR RENDER
+const PORT = process.env.PORT || 3000;
 
 app.use(express.static("public"));
 app.use(express.json());
 
-// ================= DATABASE =================
-mongoose.connect("mongodb+srv://laurentcity:police1234@cluster0.i3e40ch.mongodb.net/?appName=Cluster0")
+// 🔗 CONNECT TO MONGODB
+mongoose.connect("mongodb+srv://laurentcity:police1234@cluster0.i3e40ch.mongodb.net/?retryWrites=true&w=majority")
 .then(() => console.log("MongoDB connected ✅"))
-.catch(err => console.log("DB error:", err));
+.catch(err => console.log("MongoDB error ❌", err));
 
-// ================= USER MODEL =================
+// 🧠 USER SCHEMA
 const userSchema = new mongoose.Schema({
     name: String,
     username: String,
     email: String,
     password: String,
-    referral: String,
-
+    referralCode: String,
+    referredBy: String,
     coins: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
-
     lastMine: { type: Date, default: null }
 });
 
 const User = mongoose.model("User", userSchema);
 
-// ================= REGISTER =================
+// 📝 REGISTER
 app.post("/register", async (req, res) => {
-    try {
-        const { name, username, email, password, referral } = req.body;
+    const { name, username, email, password, referral } = req.body;
 
-        const exists = await User.findOne({ username });
-        if (exists) return res.send("User already exists ❌");
-
-        const user = new User({
-            name,
-            username,
-            email,
-            password,
-            referral
-        });
-
-        await user.save();
-        res.send("Registered successfully ✅");
-
-    } catch (err) {
-        res.send("Register error ❌");
+    if (!username || !password) {
+        return res.send("Missing fields ❌");
     }
+
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+        return res.send("User already exists ❌");
+    }
+
+    // generate simple referral code
+    const referralCode = username + Math.floor(Math.random() * 1000);
+
+    const newUser = new User({
+        name,
+        username,
+        email,
+        password,
+        referralCode,
+        referredBy: referral,
+        coins: 0,
+        level: 1
+    });
+
+    await newUser.save();
+
+    res.send("Registered successfully ✅");
 });
 
-// ================= LOGIN =================
+// 🔐 LOGIN
 app.post("/login", async (req, res) => {
-    try {
-        const { username, password } = req.body;
+    const { username, password } = req.body;
 
-        const user = await User.findOne({ username });
+    const user = await User.findOne({ username });
 
-        if (!user) {
-            return res.json({ message: "User not found ❌" });
-        }
-
-        if (user.password !== password) {
-            return res.json({ message: "Wrong password ❌" });
-        }
-
-        res.json({
-            message: "Login successful ✅",
-            username: user.username,
-            coins: user.coins,
-            level: user.level
-        });
-
-    } catch (err) {
-        res.json({ message: "Login error ❌" });
+    if (!user) {
+        return res.json({ message: "User not found ❌" });
     }
+
+    if (user.password !== password) {
+        return res.json({ message: "Wrong password ❌" });
+    }
+
+    res.json({
+        message: "Login successful ✅",
+        username: user.username,
+        coins: user.coins,
+        level: user.level
+    });
 });
 
-// ================= MINE (24H COOLDOWN) =================
+// ⛏️ MINE
 app.post("/mine", async (req, res) => {
-    const user = await User.findOne({ username: req.body.username });
+    const { username } = req.body;
 
-    if (!user) return res.send("User not found ❌");
+    const user = await User.findOne({ username });
+
+    if (!user) {
+        return res.send("User not found ❌");
+    }
 
     const now = new Date();
-    const cooldown = 24 * 60 * 60 * 1000;
 
-    if (user.lastMine && (now - user.lastMine < cooldown)) {
-        const remaining = cooldown - (now - user.lastMine);
-        const hours = Math.floor(remaining / (1000 * 60 * 60));
+    if (user.lastMine) {
+        const diff = now - user.lastMine;
+        const hours = diff / (1000 * 60 * 60);
 
-        return res.json({
-            message: `⏳ Try again after ${hours}h`,
-            coins: user.coins,
-            level: user.level
-        });
+        if (hours < 24) {
+            return res.json({
+                message: "⛔ Mining locked",
+                coins: user.coins,
+                level: user.level
+            });
+        }
     }
 
-    const reward = user.level;
-
+    const reward = user.level || 1;
     user.coins += reward;
     user.lastMine = now;
 
@@ -113,40 +121,46 @@ app.post("/mine", async (req, res) => {
     });
 });
 
-// ================= FIXED: MINE TIME LEFT =================
+// ⏳ CHECK TIME
 app.post("/mine-time-left", async (req, res) => {
+    const { username } = req.body;
 
-    const user = await User.findOne({ username: req.body.username });
+    const user = await User.findOne({ username });
 
-    if (!user || !user.lastMine) {
+    if (!user) {
+        return res.send("User not found ❌");
+    }
+
+    if (!user.lastMine) {
         return res.json({ remaining: 0 });
     }
 
     const now = new Date();
-    const cooldown = 24 * 60 * 60 * 1000;
-
     const diff = now - user.lastMine;
 
-    if (diff >= cooldown) {
+    if (diff >= 24 * 60 * 60 * 1000) {
         return res.json({ remaining: 0 });
     }
 
-    const remainingMs = cooldown - diff;
+    const remainingMs = (24 * 60 * 60 * 1000) - diff;
 
-    const hours = Math.floor(remainingMs / (1000 * 60 * 60));
-    const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+    const h = Math.floor(remainingMs / (1000 * 60 * 60));
+    const m = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
 
     res.json({
-        remaining: `${hours}h ${minutes}m`
+        remaining: `${h}h ${m}m`
     });
 });
 
-// ================= UPGRADE =================
+// ⬆️ UPGRADE
 app.post("/upgrade", async (req, res) => {
+    const { username } = req.body;
 
-    const user = await User.findOne({ username: req.body.username });
+    const user = await User.findOne({ username });
 
-    if (!user) return res.send("User not found ❌");
+    if (!user) {
+        return res.send("User not found ❌");
+    }
 
     const cost = user.level * 10;
 
@@ -166,24 +180,7 @@ app.post("/upgrade", async (req, res) => {
     });
 });
 
-// ================= AUTO LOGIN =================
-app.post("/auto-login", async (req, res) => {
-
-    const user = await User.findOne({ username: req.body.username });
-
-    if (!user) {
-        return res.json({ ok: false });
-    }
-
-    res.json({
-        ok: true,
-        username: user.username,
-        coins: user.coins,
-        level: user.level
-    });
-});
-
-// ================= START SERVER =================
+// 🚀 START SERVER
 app.listen(PORT, () => {
-    console.log("LCM running on http://localhost:3000");
+    console.log(`LCM running on port ${PORT}`);
 });
