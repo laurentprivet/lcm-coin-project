@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 
 const app = express();
 
-// ================= SAFE CRASH HANDLING =================
+// ================= SAFE HANDLERS =================
 process.on("uncaughtException", (err) => {
     console.log("❌ Uncaught Exception:", err);
 });
@@ -18,6 +18,11 @@ const PORT = process.env.PORT || 3000;
 // ================= MIDDLEWARE =================
 app.use(express.static("public"));
 app.use(express.json());
+
+// ================= ROOT ROUTE (FIX HELLO WORLD) =================
+app.get("/", (req, res) => {
+    res.send("⛏️ LCM Mining App is Running 🚀");
+});
 
 // ================= MONGODB =================
 mongoose.connect("mongodb+srv://laurentcity:police1234@cluster0.i3e40ch.mongodb.net/?retryWrites=true&w=majority")
@@ -139,7 +144,6 @@ app.post("/mine", async (req, res) => {
         });
 
     } catch (err) {
-        console.log(err);
         res.send("Mine error ❌");
     }
 });
@@ -206,7 +210,6 @@ app.post("/upgrade", async (req, res) => {
         res.send("Upgrade error ❌");
     }
 });
-
 // ================= START SERVER (RENDER FIX) =================
 app.listen(PORT, "0.0.0.0", () => {
     console.log(`LCM running on port ${PORT}`);
