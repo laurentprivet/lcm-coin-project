@@ -33,6 +33,7 @@ function register() {
         document.getElementById("message").innerText = "Register error ❌";
     });
 }
+
 // ================= LOGIN =================
 function login() {
     const username = document.getElementById("username").value;
@@ -51,19 +52,15 @@ function login() {
 
         console.log("LOGIN RESPONSE:", data);
 
-        // ❌ FAIL CASE
         if (!data.username) {
-            if (messageBox) {
-                messageBox.innerText = data.message;
-                messageBox.style.color = "red";
-            }
+            messageBox.innerText = data.message;
+            messageBox.style.color = "red";
 
             passwordInput.value = "";
             passwordInput.focus();
             return;
         }
 
-        // ✅ SUCCESS CASE
         currentUser = data.username;
 
         localStorage.setItem("lcmUser", currentUser);
@@ -74,21 +71,42 @@ function login() {
         document.getElementById("balance").innerText = data.coins;
         document.getElementById("level").innerText = data.level;
 
-        if (messageBox) {
-            messageBox.innerText = data.message;
-            messageBox.style.color = "green";
-        }
+        messageBox.innerText = data.message;
+        messageBox.style.color = "green";
 
         startLiveCountdown();
     })
     .catch(() => {
-        if (messageBox) {
-            messageBox.innerText = "Network error ❌";
-            messageBox.style.color = "red";
-        }
+        messageBox.innerText = "Network error ❌";
+        messageBox.style.color = "red";
+    });
+}
 
-        passwordInput.value = "";
-        passwordInput.focus();
+// ================= MINE (WITH ANIMATION) =================
+function mine() {
+    if (!currentUser) return;
+
+    const coin = document.querySelector(".coin");
+
+    // 🔥 coin animation effect
+    if (coin) {
+        coin.classList.add("mine-effect");
+
+        setTimeout(() => {
+            coin.classList.remove("mine-effect");
+        }, 400);
+    }
+
+    fetch("/mine", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: currentUser })
+    })
+    .then(r => r.json())
+    .then(d => {
+        document.getElementById("message").innerText = d.message;
+        document.getElementById("balance").innerText = d.coins;
+        document.getElementById("level").innerText = d.level;
     });
 }
 
@@ -114,9 +132,7 @@ function startLiveCountdown() {
 
     if (!currentUser) return;
 
-    if (countdownInterval) {
-        clearInterval(countdownInterval);
-    }
+    if (countdownInterval) clearInterval(countdownInterval);
 
     countdownInterval = setInterval(() => {
 
@@ -136,22 +152,11 @@ function startLiveCountdown() {
             const remaining = d.remaining ?? 0;
 
             if (remaining === 0) {
-
                 cooldown.innerText = "⛏️ Ready to mine!";
-
-                if (mineBtn) {
-                    mineBtn.disabled = false;
-                    mineBtn.style.opacity = "1";
-                }
-
+                mineBtn.disabled = false;
             } else {
-
                 cooldown.innerText = "⏳ " + remaining;
-
-                if (mineBtn) {
-                    mineBtn.disabled = true;
-                    mineBtn.style.opacity = "0.5";
-                }
+                mineBtn.disabled = true;
             }
 
         })

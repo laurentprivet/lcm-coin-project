@@ -4,6 +4,7 @@
     <title>LCM Mining</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
 <div class="container">
@@ -28,43 +29,62 @@
     <!-- ================= DASHBOARD ================= -->
     <div id="dashboard" class="card" style="display:none;">
 
-    <div class="actions">
-        <button id="mineBtn" onclick="mine()">⛏️ Mine</button>
-        <button onclick="upgrade()">⬆️ Upgrade</button>
+        <div class="actions">
+            <button id="mineBtn" onclick="mine()">⛏️ Mine</button>
+            <button onclick="upgrade()">⬆️ Upgrade</button>
+        </div>
+
+        <!-- 🪙 LCM COIN -->
+<div class="coin-container">
+
+    <div class="coin">
+
+        <div class="coin-top">LIQUID CRYPTO MONEY</div>
+
+        <div class="coin-center">LCM</div>
+
+        <div class="coin-bottom">DIGITAL CURRENCY</div>
+
     </div>
 
-    <!-- 💰 STATS -->
-    <p>💰 Balance: <span id="balance">0</span> LCM</p>
-    <p>⭐ Level: <span id="level">1</span></p>
-
-    <!-- ⏳ LIVE COOLDOWN (THIS IS THE IMPORTANT PART) -->
-    <p id="cooldown">⏳ Loading timer...</p>
-
-    <!-- 🔘 CHECK BUTTON (OPTIONAL MANUAL CHECK) -->
-    <button onclick="checkMineTime()">⏳ Check Time</button>
-
-    <!-- 📢 MESSAGE AREA -->
-    <p id="message"></p>
-
-    <!-- 🚪 LOGOUT -->
-    <button onclick="logout()">🚪 Logout</button>
-
 </div>
-<!-- ================= REGISTER MODAL ================= -->
-<div id="registerModal" class="modal">
 
-    <div class="modal-content">
+        <!-- 💰 STATS -->
+        <p>💰 Balance: <span id="balance">0</span> LCM</p>
 
-        <h3>Create Account</h3>
+        <p>⭐ Level: <span id="level">1</span></p>
 
-        <input id="reg_name" placeholder="Full Name">
-        <input id="reg_username" placeholder="Username">
-        <input id="reg_email" placeholder="Email">
-        <input id="reg_password" type="password" placeholder="Password">
-        <input id="reg_referral" placeholder="Referral Code (optional)">
+        <!-- ⏳ COOLDOWN -->
+        <p id="cooldown">⏳ Loading timer...</p>
 
-        <button onclick="register()">Register</button>
-        <button onclick="closeRegister()">Close</button>
+        <!-- ⏳ CHECK TIME -->
+        <button onclick="checkMineTime()">⏳ Check Time</button>
+
+        <!-- 📢 MESSAGE -->
+        <p id="message"></p>
+
+        <!-- 🚪 LOGOUT -->
+        <button onclick="logout()">🚪 Logout</button>
+
+    </div>
+
+    <!-- ================= REGISTER MODAL ================= -->
+    <div id="registerModal" class="modal">
+
+        <div class="modal-content">
+
+            <h3>Create Account</h3>
+
+            <input id="reg_name" placeholder="Full Name">
+            <input id="reg_username" placeholder="Username">
+            <input id="reg_email" placeholder="Email">
+            <input id="reg_password" type="password" placeholder="Password">
+            <input id="reg_referral" placeholder="Referral Code (optional)">
+
+            <button onclick="register()">Register</button>
+            <button onclick="closeRegister()">Close</button>
+
+        </div>
 
     </div>
 
