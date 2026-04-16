@@ -33,67 +33,62 @@ function register() {
         document.getElementById("message").innerText = "Register error ❌";
     });
 }
-
 // ================= LOGIN =================
 function login() {
     const username = document.getElementById("username").value;
-    const password = document.getElementById("password").value;
+    const passwordInput = document.getElementById("password");
+    const password = passwordInput.value;
+
+    const messageBox = document.getElementById("message");
 
     fetch("/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password })
     })
-    .then(r => r.json())
-    .then(d => {
+    .then(res => res.json())
+    .then(data => {
 
-        if (!d.username) {
-            document.getElementById("message").innerText = d.message;
+        console.log("LOGIN RESPONSE:", data);
+
+        // ❌ FAIL CASE
+        if (!data.username) {
+            if (messageBox) {
+                messageBox.innerText = data.message;
+                messageBox.style.color = "red";
+            }
+
+            passwordInput.value = "";
+            passwordInput.focus();
             return;
         }
 
-        currentUser = d.username;
+        // ✅ SUCCESS CASE
+        currentUser = data.username;
 
-        // save login (auto login)
         localStorage.setItem("lcmUser", currentUser);
 
-        // show dashboard
         document.getElementById("authSection").style.display = "none";
         document.getElementById("dashboard").style.display = "block";
 
-        document.getElementById("balance").innerText = d.coins;
-        document.getElementById("level").innerText = d.level;
-        document.getElementById("message").innerText = d.message;
+        document.getElementById("balance").innerText = data.coins;
+        document.getElementById("level").innerText = data.level;
+
+        if (messageBox) {
+            messageBox.innerText = data.message;
+            messageBox.style.color = "green";
+        }
 
         startLiveCountdown();
     })
     .catch(() => {
-        document.getElementById("message").innerText = "Login error ❌";
-    });
-}
+        if (messageBox) {
+            messageBox.innerText = "Network error ❌";
+            messageBox.style.color = "red";
+        }
 
-// ================= MINE =================
-function mine() {
-    if (!currentUser) {
-        document.getElementById("message").innerText = "Login first ❌";
-        return;
-    }
-
-    fetch("/mine", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: currentUser })
-    })
-    .then(r => r.json())
-    .then(d => {
-
-        document.getElementById("message").innerText = d.message;
-        document.getElementById("balance").innerText = d.coins;
-        document.getElementById("level").innerText = d.level;
-
-    })
-    .catch(() => {
-        document.getElementById("message").innerText = "Mining error ❌";
+        passwordInput.value = "";
+        passwordInput.focus();
     });
 }
 

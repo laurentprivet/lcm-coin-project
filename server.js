@@ -83,20 +83,29 @@ app.post("/register", async (req, res) => {
 
 // ================= LOGIN =================
 app.post("/login", async (req, res) => {
+    console.log("LOGIN HIT"); // 🔍 Debug: check if request reaches server
+
     try {
         const { username, password } = req.body;
 
+        // 🔒 Basic validation
+        if (!username || !password) {
+            return res.json({
+                message: "Please enter username and password ❌"
+            });
+        }
+
         const user = await User.findOne({ username });
 
-        if (!user) {
-            return res.json({ message: "User not found ❌" });
+        // ❌ WRONG USERNAME OR PASSWORD (same message)
+        if (!user || user.password !== password) {
+            return res.json({
+                message: "Wrong password (check your username or password) ❌"
+            });
         }
 
-        if (user.password !== password) {
-            return res.json({ message: "Wrong password ❌" });
-        }
-
-        res.json({
+        // ✅ SUCCESS
+        return res.json({
             message: "Login successful ✅",
             username: user.username,
             coins: user.coins,
@@ -104,7 +113,11 @@ app.post("/login", async (req, res) => {
         });
 
     } catch (err) {
-        res.json({ message: "Login error ❌" });
+        console.log("LOGIN ERROR:", err);
+
+        return res.json({
+            message: "Server error ❌"
+        });
     }
 });
 
