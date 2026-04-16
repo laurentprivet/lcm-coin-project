@@ -36,17 +36,30 @@
 
         <!-- 🪙 LCM COIN -->
 <div class="coin-container">
-
     <div class="coin">
 
-        <div class="coin-top">LIQUID CRYPTO MONEY</div>
+        <!-- 🔵 SVG (ONLY TOP CURVE) -->
+        <svg viewBox="0 0 200 200" class="coin-svg">
 
-        <div class="coin-center">LCM</div>
+            <!-- TOP CURVE -->
+            <path id="topCurve" d="M 30 100 A 70 70 0 0 1 170 100" fill="transparent"/>
+            <text>
+                <textPath href="#topCurve" startOffset="50%" text-anchor="middle">
+                    LIQUID CRYPTO MONEY
+                </textPath>
+            </text>
 
-        <div class="coin-bottom">DIGITAL CURRENCY</div>
+        </svg>
+
+        <!-- CENTER -->
+        <div class="coin-inner">
+            <div class="coin-center">LCM</div>
+        </div>
+
+        <!-- BOTTOM (STRAIGHT) -->
+        <div class="coin-bottom">DIGITAL</div>
 
     </div>
-
 </div>
 
         <!-- 💰 STATS -->
@@ -58,7 +71,6 @@
         <p id="cooldown">⏳ Loading timer...</p>
 
         <!-- ⏳ CHECK TIME -->
-        <button onclick="checkMineTime()">⏳ Check Time</button>
 
         <!-- 📢 MESSAGE -->
         <p id="message"></p>
