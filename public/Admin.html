@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🛠️ Admin Dashboard</h1>
+
+    <!-- LOGIN -->
+    <div id="adminLogin" class="card">
+        <h3>Admin Login</h3>
+
+        <input id="adminUser" placeholder="Username">
+        <input id="adminPass" type="password" placeholder="Password">
+
+        <button onclick="adminLogin()">Login</button>
+
+        <p id="adminMsg"></p>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="adminPanel" class="card" style="display:none;">
+
+        <h3>👥 All Users</h3>
+        <button onclick="loadUsers()">Load Users</button>
+
+        <table border="1" width="100%">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Coins</th>
+                    <th>Level</th>
+                    <th>Referrals</th>
+                </tr>
+            </thead>
+            <tbody id="userTable"></tbody>
+        </table>
+
+        <hr>
+
+        <h3>🏆 Leaderboard</h3>
+        <button onclick="loadLeaderboard()">Load Leaderboard</button>
+
+        <ul id="leaderboard"></ul>
+
+        <hr>
+
+        <h3>🟢 Active Users</h3>
+        <button onclick="loadActive()">Load Active Users</button>
+
+        <ul id="activeUsers"></ul>
+
+    </div>
+
+</div>
+
+<script>
+
+// ================= ADMIN LOGIN =================
+function adminLogin() {
+    const username = document.getElementById("adminUser").value;
+    const password = document.getElementById("adminPass").value;
+
+    fetch("/admin-login", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ username, password })
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.ok) {
+            document.getElementById("adminLogin").style.display = "none";
+            document.getElementById("adminPanel").style.display = "block";
+        } else {
+            document.getElementById("adminMsg").innerText = d.message;
+        }
+    });
+}
+
+// ================= LOAD USERS =================
+function loadUsers() {
+    fetch("/admin-users")
+    .then(r => r.json())
+    .then(users => {
+
+        const table = document.getElementById("userTable");
+        table.innerHTML = "";
+
+        users.forEach(u => {
+            table.innerHTML += `
+                <tr>
+                    <td>${u.username}</td>
+                    <td>${u.coins}</td>
+                    <td>${u.level}</td>
+                    <td>${u.referrals.length}</td>
+                </tr>
+            `;
+        });
+    });
+}
+
+// ================= LEADERBOARD =================
+function loadLeaderboard() {
+    fetch("/leaderboard")
+    .then(r => r.json())
+    .then(users => {
+
+        const list = document.getElementById("leaderboard");
+        list.innerHTML = "";
+
+        users.forEach((u, i) => {
+            list.innerHTML += `<li>#${i+1} ${u.username} - ${u.coins} LCM</li>`;
+        });
+    });
+}
+
+// ================= ACTIVE USERS =================
+function loadActive() {
+    fetch("/active-users")
+    .then(r => r.json())
+    .then(users => {
+
+        const list = document.getElementById("activeUsers");
+        list.innerHTML = "";
+
+        users.forEach(u => {
+            list.innerHTML += `<li>🟢 ${u.username}</li>`;
+        });
+    });
+}
+
+</script>
+
+</body>
+</html>

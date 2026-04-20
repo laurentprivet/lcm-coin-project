@@ -4,6 +4,12 @@ const path = require("path");
 
 const app = express();
 
+// ================= ADMIN =================
+const ADMIN = {
+    username: "admin",
+    password: "admin123"
+};
+
 // ================= SAFE HANDLERS =================
 process.on("uncaughtException", (err) => {
     console.log("❌ Uncaught Exception:", err);
@@ -40,7 +46,9 @@ const userSchema = new mongoose.Schema({
     level: { type: Number, default: 1 },
 
     lastMine: { type: Number, default: 0 },
-    totalMined: { type: Number, default: 0 }
+    totalMined: { type: Number, default: 0 },
+
+    lastActive: { type: Number, default: 0 } // 🟢 ACTIVE TRACK
 });
 
 const User = mongoose.model("User", userSchema);
@@ -51,6 +59,8 @@ function generateReferralCode(username) {
 }
 
 // ================= ROUTES =================
+
+// Home
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
 });
@@ -58,7 +68,10 @@ app.get("/", (req, res) => {
 app.get("/register", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "register.html"));
 });
-
+// 🔐 ADMIN PAGE ROUTE (ADD HERE)
+app.get("/admin", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
 // ================= REGISTER =================
 app.post("/register", async (req, res) => {
     try {
@@ -90,7 +103,8 @@ app.post("/register", async (req, res) => {
             password,
             referralCode,
             referredBy: referral || null,
-            referrals: []
+            referrals: [],
+            lastActive: Date.now()
         });
 
         await newUser.save();
@@ -124,6 +138,9 @@ app.post("/login", async (req, res) => {
             return res.json({ message: "Wrong username or password ❌" });
         }
 
+        user.lastActive = Date.now();
+        await user.save();
+
         res.json({
             message: "Login successful ✅",
             username: user.username,
@@ -136,22 +153,53 @@ app.post("/login", async (req, res) => {
     }
 });
 
-// ================= AUTO LOGIN =================
-app.post("/auto-login", async (req, res) => {
+// ================= 🔐 ADMIN LOGIN =================
+app.post("/admin-login", (req, res) => {
+    const { username, password } = req.body;
+
+    if (username === ADMIN.username && password === ADMIN.password) {
+        return res.json({ ok: true });
+    }
+
+    res.json({ ok: false, message: "Invalid admin credentials ❌" });
+});
+
+// ================= ADMIN USERS =================
+app.get("/admin-users", async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.body.username });
+        const users = await User.find({}, "-password");
+        res.json(users);
+    } catch {
+        res.json({ message: "Error loading users ❌" });
+    }
+});
 
-        if (!user) return res.json({ ok: false });
+// ================= LEADERBOARD =================
+app.get("/leaderboard", async (req, res) => {
+    try {
+        const users = await User.find({})
+            .sort({ coins: -1 })
+            .limit(10);
 
-        res.json({
-            ok: true,
-            username: user.username,
-            coins: user.coins,
-            level: user.level
+        res.json(users);
+    } catch {
+        res.json({ message: "Leaderboard error ❌" });
+    }
+});
+
+// ================= ACTIVE USERS =================
+app.get("/active-users", async (req, res) => {
+    try {
+        const now = Date.now();
+        const activeLimit = 5 * 60 * 1000;
+
+        const users = await User.find({
+            lastActive: { $gte: now - activeLimit }
         });
 
-    } catch (err) {
-        res.json({ ok: false });
+        res.json(users);
+    } catch {
+        res.json({ message: "Active users error ❌" });
     }
 });
 
@@ -168,7 +216,7 @@ app.post("/user-info", async (req, res) => {
             referralEarnings: user.referrals.length * 5
         });
 
-    } catch (err) {
+    } catch {
         res.json({ message: "Error ❌" });
     }
 });
@@ -180,7 +228,7 @@ app.post("/mine", async (req, res) => {
         if (!user) return res.json({ message: "User not found ❌" });
 
         const now = Date.now();
-        const cooldown = 10 * 1000;
+        const cooldown = 24 * 60 * 60 * 1000;
 
         if (user.lastMine && now - user.lastMine < cooldown) {
             const remaining = Math.ceil((cooldown - (now - user.lastMine)) / 1000);
@@ -197,6 +245,7 @@ app.post("/mine", async (req, res) => {
         user.coins += reward;
         user.totalMined += reward;
         user.lastMine = now;
+        user.lastActive = now;
 
         await user.save();
 
@@ -206,7 +255,7 @@ app.post("/mine", async (req, res) => {
             level: user.level
         });
 
-    } catch (err) {
+    } catch {
         res.json({ message: "Mine error ❌" });
     }
 });
@@ -225,6 +274,7 @@ app.post("/upgrade", async (req, res) => {
 
         user.coins -= cost;
         user.level += 1;
+        user.lastActive = Date.now();
 
         await user.save();
 
@@ -234,19 +284,17 @@ app.post("/upgrade", async (req, res) => {
             level: user.level
         });
 
-    } catch (err) {
+    } catch {
         res.json({ message: "Upgrade error ❌" });
     }
 });
 
-// ================= 🔥 FIX: MINE TIME LEFT (YOUR ERROR FIX) =================
+// ================= TIME LEFT =================
 app.post("/mine-time-left", async (req, res) => {
     try {
         const user = await User.findOne({ username: req.body.username });
 
-        if (!user) {
-            return res.json({ remaining: 0 });
-        }
+        if (!user) return res.json({ remaining: 0 });
 
         const cooldown = 24 * 60 * 60 * 1000;
         const now = Date.now();
@@ -259,13 +307,12 @@ app.post("/mine-time-left", async (req, res) => {
 
         res.json({ remaining });
 
-    } catch (err) {
-        console.log(err);
+    } catch {
         res.json({ remaining: 0 });
     }
 });
 
-// ================= SERVER START =================
+// ================= START =================
 app.listen(PORT, () => {
     console.log(`LCM running on port ${PORT} 🚀`);
 });

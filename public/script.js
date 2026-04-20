@@ -14,7 +14,6 @@ function showMessage(text, color = "black") {
     msg.innerText = text;
     msg.style.color = color;
 }
-
 // ================= REGISTER =================
 function register() {
     const name = el("reg_name")?.value || "";
