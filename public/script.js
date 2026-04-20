@@ -2,45 +2,47 @@
 let currentUser = "";
 let countdownInterval = null;
 
-// ================= OPEN REGISTER =================
-function openRegister() {
-    document.getElementById("registerModal").style.display = "block";
+// ================= SAFE ELEMENT =================
+function el(id) {
+    return document.getElementById(id);
 }
 
-function closeRegister() {
-    document.getElementById("registerModal").style.display = "none";
+// ================= MESSAGE =================
+function showMessage(text, color = "black") {
+    const msg = el("message");
+    if (!msg) return;
+    msg.innerText = text;
+    msg.style.color = color;
 }
 
 // ================= REGISTER =================
 function register() {
-    const name = document.getElementById("reg_name").value;
-    const username = document.getElementById("reg_username").value;
-    const email = document.getElementById("reg_email").value;
-    const password = document.getElementById("reg_password").value;
-    const referral = document.getElementById("reg_referral").value;
+    const name = el("reg_name")?.value || "";
+    const username = el("reg_username")?.value || "";
+    const email = el("reg_email")?.value || "";
+    const password = el("reg_password")?.value || "";
+    const referral = el("reg_referral")?.value || "";
 
     fetch("/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, username, email, password, referral })
     })
-    .then(r => r.text())
+    .then(r => r.json())
     .then(d => {
-        document.getElementById("message").innerText = d;
-        closeRegister();
+        showMessage(d.message, "green");
     })
     .catch(() => {
-        document.getElementById("message").innerText = "Register error ❌";
+        showMessage("Register error ❌", "red");
     });
 }
 
 // ================= LOGIN =================
-function login() {
-    const username = document.getElementById("username").value;
-    const passwordInput = document.getElementById("password");
-    const password = passwordInput.value;
+function login(event) {
+    if (event) event.preventDefault(); // 🔥 FIX CURSOR BUG
 
-    const messageBox = document.getElementById("message");
+    const username = el("username")?.value || "";
+    const password = el("password")?.value || "";
 
     fetch("/login", {
         method: "POST",
@@ -50,52 +52,67 @@ function login() {
     .then(res => res.json())
     .then(data => {
 
-        console.log("LOGIN RESPONSE:", data);
-
         if (!data.username) {
-            messageBox.innerText = data.message;
-            messageBox.style.color = "red";
-
-            passwordInput.value = "";
-            passwordInput.focus();
+            showMessage(data.message, "red");
+            el("password").value = "";
+            el("password").focus();
             return;
         }
 
         currentUser = data.username;
-
         localStorage.setItem("lcmUser", currentUser);
 
-        document.getElementById("authSection").style.display = "none";
-        document.getElementById("dashboard").style.display = "block";
+        el("authSection").style.display = "none";
+        el("dashboard").style.display = "block";
 
-        document.getElementById("balance").innerText = data.coins;
-        document.getElementById("level").innerText = data.level;
+        el("balance").innerText = data.coins || 0;
+        el("level").innerText = data.level || 1;
 
-        messageBox.innerText = data.message;
-        messageBox.style.color = "green";
+        showMessage(data.message, "green");
 
+        loadReferralData(currentUser);
         startLiveCountdown();
     })
     .catch(() => {
-        messageBox.innerText = "Network error ❌";
-        messageBox.style.color = "red";
+        showMessage("Network error ❌", "red");
     });
 }
 
-// ================= MINE (WITH ANIMATION) =================
+// ================= LOAD REFERRAL =================
+function loadReferralData(username) {
+    fetch("/user-info", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username })
+    })
+    .then(r => r.json())
+    .then(data => {
+
+        el("refCount").innerText = data.referrals || 0;
+        el("refEarn").innerText = data.referralEarnings || 0;
+
+        const link = window.location.origin + "/register?ref=" + (data.referralCode || "");
+        el("refLink").value = link;
+    })
+    .catch(() => {
+        console.log("Referral load error");
+    });
+}
+
+// ================= COPY LINK =================
+function copyLink() {
+    const input = el("refLink");
+    if (!input) return;
+
+    input.select();
+    document.execCommand("copy");
+
+    alert("Referral link copied ✅");
+}
+
+// ================= MINE =================
 function mine() {
     if (!currentUser) return;
-
-    const coin = document.querySelector(".coin");
-
-    // 🔥 coin animation effect
-    if (coin) {
-        coin.classList.add("mine-effect");
-
-        setTimeout(() => {
-            coin.classList.remove("mine-effect");
-        }, 400);
-    }
 
     fetch("/mine", {
         method: "POST",
@@ -104,9 +121,11 @@ function mine() {
     })
     .then(r => r.json())
     .then(d => {
-        document.getElementById("message").innerText = d.message;
-        document.getElementById("balance").innerText = d.coins;
-        document.getElementById("level").innerText = d.level;
+
+        showMessage(d.message, "green");
+
+        if (d.coins !== undefined) el("balance").innerText = d.coins;
+        if (d.level !== undefined) el("level").innerText = d.level;
     });
 }
 
@@ -121,13 +140,15 @@ function upgrade() {
     })
     .then(r => r.json())
     .then(d => {
-        document.getElementById("message").innerText = d.message;
-        document.getElementById("balance").innerText = d.coins;
-        document.getElementById("level").innerText = d.level;
+
+        showMessage(d.message, "green");
+
+        if (d.coins !== undefined) el("balance").innerText = d.coins;
+        if (d.level !== undefined) el("level").innerText = d.level;
     });
 }
 
-// ================= LIVE COUNTDOWN =================
+// ================= COUNTDOWN =================
 function startLiveCountdown() {
 
     if (!currentUser) return;
@@ -144,10 +165,10 @@ function startLiveCountdown() {
         .then(r => r.json())
         .then(d => {
 
-            const cooldown = document.getElementById("cooldown");
-            const mineBtn = document.getElementById("mineBtn");
+            const cooldown = el("cooldown");
+            const mineBtn = el("mineBtn");
 
-            if (!cooldown) return;
+            if (!cooldown || !mineBtn) return;
 
             const remaining = d.remaining ?? 0;
 
@@ -155,33 +176,17 @@ function startLiveCountdown() {
                 cooldown.innerText = "⛏️ Ready to mine!";
                 mineBtn.disabled = false;
             } else {
-                cooldown.innerText = "⏳ " + remaining;
+                cooldown.innerText = "⏳ " + remaining + "s";
                 mineBtn.disabled = true;
             }
 
         })
         .catch(() => {
-            document.getElementById("cooldown").innerText =
-                "❌ Cannot load time";
+            const cooldown = el("cooldown");
+            if (cooldown) cooldown.innerText = "❌ Cannot load time";
         });
 
     }, 1000);
-}
-
-// ================= CHECK TIME =================
-function checkMineTime() {
-    if (!currentUser) return;
-
-    fetch("/mine-time-left", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: currentUser })
-    })
-    .then(r => r.json())
-    .then(d => {
-        document.getElementById("cooldown").innerText =
-            d.remaining === 0 ? "⛏️ You can mine now!" : "⏳ " + d.remaining;
-    });
 }
 
 // ================= LOGOUT =================
@@ -207,12 +212,13 @@ window.onload = function () {
             if (d.ok) {
                 currentUser = d.username;
 
-                document.getElementById("authSection").style.display = "none";
-                document.getElementById("dashboard").style.display = "block";
+                el("authSection").style.display = "none";
+                el("dashboard").style.display = "block";
 
-                document.getElementById("balance").innerText = d.coins;
-                document.getElementById("level").innerText = d.level;
+                el("balance").innerText = d.coins || 0;
+                el("level").innerText = d.level || 1;
 
+                loadReferralData(currentUser);
                 startLiveCountdown();
             }
         });

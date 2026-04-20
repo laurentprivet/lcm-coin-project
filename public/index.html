@@ -11,7 +11,7 @@
 
     <h1>⛏️ LCM Mining</h1>
 
-    <!-- ================= AUTH SECTION ================= -->
+    <!-- ================= LOGIN SECTION ================= -->
     <div id="authSection" class="card">
 
         <h3>Account Access</h3>
@@ -21,7 +21,10 @@
 
         <div class="buttons">
             <button onclick="login()">Login</button>
-            <button onclick="openRegister()">Register</button>
+
+            <a href="/register">
+                <button type="button">Register</button>
+            </a>
         </div>
 
     </div>
@@ -30,73 +33,54 @@
     <div id="dashboard" class="card" style="display:none;">
 
         <div class="actions">
+            <!-- 🔥 FIX: ADD ID HERE -->
             <button id="mineBtn" onclick="mine()">⛏️ Mine</button>
             <button onclick="upgrade()">⬆️ Upgrade</button>
         </div>
 
-        <!-- 🪙 LCM COIN -->
-<div class="coin-container">
-    <div class="coin">
+        <!-- COIN -->
+        <div class="coin-container">
+            <div class="coin">
 
-        <!-- 🔵 SVG (ONLY TOP CURVE) -->
-        <svg viewBox="0 0 200 200" class="coin-svg">
+                <svg viewBox="0 0 200 200" class="coin-svg">
+                    <path id="topCurve" d="M 30 100 A 70 70 0 0 1 170 100" fill="transparent"/>
+                    <text>
+                        <textPath href="#topCurve" startOffset="50%" text-anchor="middle">
+                            LIQUID CRYPTO MONEY
+                        </textPath>
+                    </text>
+                </svg>
 
-            <!-- TOP CURVE -->
-            <path id="topCurve" d="M 30 100 A 70 70 0 0 1 170 100" fill="transparent"/>
-            <text>
-                <textPath href="#topCurve" startOffset="50%" text-anchor="middle">
-                    LIQUID CRYPTO MONEY
-                </textPath>
-            </text>
+                <div class="coin-inner">
+                    <div class="coin-center">LCM</div>
+                </div>
 
-        </svg>
+                <div class="coin-bottom">DIGITAL</div>
 
-        <!-- CENTER -->
-        <div class="coin-inner">
-            <div class="coin-center">LCM</div>
+            </div>
         </div>
 
-        <!-- BOTTOM (STRAIGHT) -->
-        <div class="coin-bottom">DIGITAL</div>
-
-    </div>
-</div>
-
-        <!-- 💰 STATS -->
+        <!-- STATS -->
         <p>💰 Balance: <span id="balance">0</span> LCM</p>
-
         <p>⭐ Level: <span id="level">1</span></p>
 
-        <!-- ⏳ COOLDOWN -->
+        <!-- 🔥 REFERRAL SECTION -->
+        <p>👥 Referrals: <span id="refCount">0</span></p>
+        <p>💰 Referral Earnings: <span id="refEarn">0</span> LCM</p>
+
+        <p>🔗 Your Referral Link:</p>
+        <input id="refLink" readonly>
+
+        <button onclick="copyLink()">Copy Link</button>
+
+        <!-- TIMER -->
         <p id="cooldown">⏳ Loading timer...</p>
 
-        <!-- ⏳ CHECK TIME -->
-
-        <!-- 📢 MESSAGE -->
+        <!-- MESSAGE -->
         <p id="message"></p>
 
-        <!-- 🚪 LOGOUT -->
+        <!-- LOGOUT -->
         <button onclick="logout()">🚪 Logout</button>
-
-    </div>
-
-    <!-- ================= REGISTER MODAL ================= -->
-    <div id="registerModal" class="modal">
-
-        <div class="modal-content">
-
-            <h3>Create Account</h3>
-
-            <input id="reg_name" placeholder="Full Name">
-            <input id="reg_username" placeholder="Username">
-            <input id="reg_email" placeholder="Email">
-            <input id="reg_password" type="password" placeholder="Password">
-            <input id="reg_referral" placeholder="Referral Code (optional)">
-
-            <button onclick="register()">Register</button>
-            <button onclick="closeRegister()">Close</button>
-
-        </div>
 
     </div>
 

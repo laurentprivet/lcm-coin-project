@@ -1,5 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
+const path = require("path");
 
 const app = express();
 
@@ -12,17 +13,12 @@ process.on("unhandledRejection", (err) => {
     console.log("❌ Unhandled Rejection:", err);
 });
 
-// ================= PORT (RENDER FIX) =================
+// ================= PORT =================
 const PORT = process.env.PORT || 3000;
 
 // ================= MIDDLEWARE =================
 app.use(express.static("public"));
 app.use(express.json());
-
-// ================= ROOT ROUTE (FIX HELLO WORLD) =================
-app.get("/", (req, res) => {
-    res.send("⛏️ LCM Mining App is Running 🚀");
-});
 
 // ================= MONGODB =================
 mongoose.connect("mongodb+srv://laurentcity:police1234@cluster0.i3e40ch.mongodb.net/?retryWrites=true&w=majority")
@@ -32,17 +28,38 @@ mongoose.connect("mongodb+srv://laurentcity:police1234@cluster0.i3e40ch.mongodb.
 // ================= USER SCHEMA =================
 const userSchema = new mongoose.Schema({
     name: String,
-    username: String,
+    username: { type: String, unique: true },
     email: String,
     password: String,
-    referralCode: String,
+
+    referralCode: { type: String, unique: true },
     referredBy: String,
+    referrals: { type: [String], default: [] },
+
     coins: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
-    lastMine: { type: Date, default: null }
+
+    lastMine: { type: Date, default: null },
+    totalMined: { type: Number, default: 0 }
 });
 
 const User = mongoose.model("User", userSchema);
+
+// ================= REF CODE =================
+function generateReferralCode(username) {
+    return username + Math.floor(1000 + Math.random() * 9000);
+}
+
+// ================= ROUTES =================
+
+// Home
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "login.html"));
+});
+
+app.get("/register", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "register.html"));
+});
 
 // ================= REGISTER =================
 app.post("/register", async (req, res) => {
@@ -50,15 +67,23 @@ app.post("/register", async (req, res) => {
         const { name, username, email, password, referral } = req.body;
 
         if (!username || !password) {
-            return res.send("Missing fields ❌");
+            return res.json({ message: "Missing fields ❌" });
         }
 
-        const existingUser = await User.findOne({ username });
-        if (existingUser) {
-            return res.send("User already exists ❌");
+        const existing = await User.findOne({ username });
+        if (existing) {
+            return res.json({ message: "User already exists ❌" });
         }
 
-        const referralCode = username + Math.floor(Math.random() * 1000);
+        let refUser = null;
+        if (referral) {
+            refUser = await User.findOne({ referralCode: referral });
+        }
+
+        let referralCode = generateReferralCode(username);
+        while (await User.findOne({ referralCode })) {
+            referralCode = generateReferralCode(username);
+        }
 
         const newUser = new User({
             name,
@@ -66,46 +91,43 @@ app.post("/register", async (req, res) => {
             email,
             password,
             referralCode,
-            referredBy: referral,
-            coins: 0,
-            level: 1
+            referredBy: referral || null,
+            referrals: []
         });
 
         await newUser.save();
 
-        res.send("Registered successfully ✅");
+        // reward referrer
+        if (refUser) {
+            refUser.coins += 5;
+            refUser.totalMined += 5;
+            refUser.referrals.push(username);
+            await refUser.save();
+        }
+
+        res.json({
+            message: "Registered successfully ✅",
+            referralCode
+        });
 
     } catch (err) {
         console.log(err);
-        res.send("Register error ❌");
+        res.json({ message: "Register error ❌" });
     }
 });
 
 // ================= LOGIN =================
 app.post("/login", async (req, res) => {
-    console.log("LOGIN HIT"); // 🔍 Debug: check if request reaches server
-
     try {
         const { username, password } = req.body;
 
-        // 🔒 Basic validation
-        if (!username || !password) {
-            return res.json({
-                message: "Please enter username and password ❌"
-            });
-        }
-
         const user = await User.findOne({ username });
 
-        // ❌ WRONG USERNAME OR PASSWORD (same message)
         if (!user || user.password !== password) {
-            return res.json({
-                message: "Wrong password (check your username or password) ❌"
-            });
+            return res.json({ message: "Wrong username or password ❌" });
         }
 
-        // ✅ SUCCESS
-        return res.json({
+        res.json({
             message: "Login successful ✅",
             username: user.username,
             coins: user.coins,
@@ -113,99 +135,90 @@ app.post("/login", async (req, res) => {
         });
 
     } catch (err) {
-        console.log("LOGIN ERROR:", err);
+        res.json({ message: "Server error ❌" });
+    }
+});
 
-        return res.json({
-            message: "Server error ❌"
+// ================= AUTO LOGIN =================
+app.post("/auto-login", async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.body.username });
+
+        if (!user) return res.json({ ok: false });
+
+        res.json({
+            ok: true,
+            username: user.username,
+            coins: user.coins,
+            level: user.level
         });
+
+    } catch (err) {
+        res.json({ ok: false });
+    }
+});
+
+// ================= USER INFO =================
+app.post("/user-info", async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.body.username });
+
+        if (!user) return res.json({ message: "User not found ❌" });
+
+        res.json({
+            referralCode: user.referralCode,
+            referrals: user.referrals.length,
+            referralEarnings: user.referrals.length * 5
+        });
+
+    } catch (err) {
+        res.json({ message: "Error ❌" });
     }
 });
 
 // ================= MINE =================
 app.post("/mine", async (req, res) => {
     try {
-        const { username } = req.body;
+        const user = await User.findOne({ username: req.body.username });
+        if (!user) return res.json({ message: "User not found ❌" });
 
-        const user = await User.findOne({ username });
-        if (!user) return res.send("User not found ❌");
+        const now = Date.now();
+        const cooldown = 10 * 1000; // 10 sec test (you can increase later)
 
-        const now = new Date();
-
-        if (user.lastMine) {
-            const diff = now - user.lastMine;
-            const hours = diff / (1000 * 60 * 60);
-
-            if (hours < 24) {
-                return res.json({
-                    message: "⛔ Mining locked",
-                    coins: user.coins,
-                    level: user.level
-                });
-            }
+        if (user.lastMine && now - user.lastMine < cooldown) {
+            const remaining = Math.ceil((cooldown - (now - user.lastMine)) / 1000);
+            return res.json({ message: "Wait cooldown ❌", coins: user.coins, level: user.level, remaining });
         }
 
-        const reward = user.level || 1;
+        const reward = user.level * 2;
+
         user.coins += reward;
+        user.totalMined += reward;
         user.lastMine = now;
 
         await user.save();
 
         res.json({
-            message: `You mined ${reward} LCM ⛏️`,
+            message: `Mined +${reward} LCM ✅`,
             coins: user.coins,
             level: user.level
         });
 
     } catch (err) {
-        res.send("Mine error ❌");
-    }
-});
-
-// ================= TIME LEFT =================
-app.post("/mine-time-left", async (req, res) => {
-    try {
-        const { username } = req.body;
-
-        const user = await User.findOne({ username });
-        if (!user) return res.send("User not found ❌");
-
-        if (!user.lastMine) {
-            return res.json({ remaining: 0 });
-        }
-
-        const now = new Date();
-        const diff = now - user.lastMine;
-
-        if (diff >= 24 * 60 * 60 * 1000) {
-            return res.json({ remaining: 0 });
-        }
-
-        const remainingMs = (24 * 60 * 60 * 1000) - diff;
-
-        const h = Math.floor(remainingMs / (1000 * 60 * 60));
-        const m = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
-
-        res.json({
-            remaining: `${h}h ${m}m`
-        });
-
-    } catch (err) {
-        res.json({ remaining: "error" });
+        res.json({ message: "Mine error ❌" });
     }
 });
 
 // ================= UPGRADE =================
 app.post("/upgrade", async (req, res) => {
     try {
-        const { username } = req.body;
-
-        const user = await User.findOne({ username });
-        if (!user) return res.send("User not found ❌");
+        const user = await User.findOne({ username: req.body.username });
+        if (!user) return res.json({ message: "User not found ❌" });
 
         const cost = user.level * 10;
 
         if (user.coins < cost) {
-            return res.send("Not enough coins ❌");
+            return res.json({ message: "Not enough coins ❌" });
         }
 
         user.coins -= cost;
@@ -214,16 +227,17 @@ app.post("/upgrade", async (req, res) => {
         await user.save();
 
         res.json({
-            message: "Level upgraded 🚀",
+            message: "Upgraded successfully ⬆️",
             coins: user.coins,
             level: user.level
         });
 
     } catch (err) {
-        res.send("Upgrade error ❌");
+        res.json({ message: "Upgrade error ❌" });
     }
 });
-// ================= START SERVER (RENDER FIX) =================
-app.listen(PORT, "0.0.0.0", () => {
-    console.log(`LCM running on port ${PORT}`);
+
+// ================= SERVER START =================
+app.listen(PORT, () => {
+    console.log(`LCM running on port ${PORT} 🚀`);
 });
