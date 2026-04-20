@@ -39,7 +39,7 @@ const userSchema = new mongoose.Schema({
     coins: { type: Number, default: 0 },
     level: { type: Number, default: 1 },
 
-    lastMine: { type: Date, default: null },
+    lastMine: { type: Number, default: 0 },
     totalMined: { type: Number, default: 0 }
 });
 
@@ -51,8 +51,6 @@ function generateReferralCode(username) {
 }
 
 // ================= ROUTES =================
-
-// Home
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "login.html"));
 });
@@ -97,7 +95,6 @@ app.post("/register", async (req, res) => {
 
         await newUser.save();
 
-        // reward referrer
         if (refUser) {
             refUser.coins += 5;
             refUser.totalMined += 5;
@@ -183,11 +180,16 @@ app.post("/mine", async (req, res) => {
         if (!user) return res.json({ message: "User not found ❌" });
 
         const now = Date.now();
-        const cooldown = 10 * 1000; // 10 sec test (you can increase later)
+        const cooldown = 10 * 1000;
 
         if (user.lastMine && now - user.lastMine < cooldown) {
             const remaining = Math.ceil((cooldown - (now - user.lastMine)) / 1000);
-            return res.json({ message: "Wait cooldown ❌", coins: user.coins, level: user.level, remaining });
+            return res.json({
+                message: "Wait cooldown ❌",
+                coins: user.coins,
+                level: user.level,
+                remaining
+            });
         }
 
         const reward = user.level * 2;
@@ -234,6 +236,32 @@ app.post("/upgrade", async (req, res) => {
 
     } catch (err) {
         res.json({ message: "Upgrade error ❌" });
+    }
+});
+
+// ================= 🔥 FIX: MINE TIME LEFT (YOUR ERROR FIX) =================
+app.post("/mine-time-left", async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.body.username });
+
+        if (!user) {
+            return res.json({ remaining: 0 });
+        }
+
+        const cooldown = 24 * 60 * 60 * 1000;
+        const now = Date.now();
+
+        if (!user.lastMine || now - user.lastMine >= cooldown) {
+            return res.json({ remaining: 0 });
+        }
+
+        const remaining = Math.ceil((cooldown - (now - user.lastMine)) / 1000);
+
+        res.json({ remaining });
+
+    } catch (err) {
+        console.log(err);
+        res.json({ remaining: 0 });
     }
 });
 

@@ -176,7 +176,12 @@ function startLiveCountdown() {
                 cooldown.innerText = "⛏️ Ready to mine!";
                 mineBtn.disabled = false;
             } else {
-                cooldown.innerText = "⏳ " + remaining + "s";
+                const hours = Math.floor(remaining / 3600);
+const minutes = Math.floor((remaining % 3600) / 60);
+const seconds = remaining % 60;
+
+cooldown.innerText =
+    `⏳ ${hours}h ${minutes}m ${seconds}s`;
                 mineBtn.disabled = true;
             }
 
