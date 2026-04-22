@@ -57,21 +57,22 @@ const User = mongoose.model("User", userSchema);
 function generateReferralCode(username) {
     return username + Math.floor(1000 + Math.random() * 9000);
 }
+ // ================= ROUTES =================
 
-// ================= ROUTES =================
+ // Home (Login page)
+ app.get("/", (req, res) => {
+     res.sendFile(path.join(__dirname, "public", "login.html"));
+ });
 
-// Home
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "login.html"));
-});
+ // Register page
+ app.get("/register", (req, res) => {
+     res.sendFile(path.join(__dirname, "public", "register.html"));
+ });
 
-app.get("/register", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "register.html"));
-});
-// 🔐 ADMIN PAGE ROUTE (ADD HERE)
-app.get("/admin", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "admin.html"));
-});
+ // 🔐 Admin page
+ app.get("/admin", (req, res) => {
+     res.sendFile(path.join(__dirname, "public", "admin.html"));
+ });
 // ================= REGISTER =================
 app.post("/register", async (req, res) => {
     try {
