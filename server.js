@@ -642,7 +642,6 @@ app.post("/mine-time-left", async (req, res) => {
     }
 
 });
-
 // ================= SERVER START =================
 app.listen(PORT, () => {
     console.log(`LCM running on port ${PORT} 🚀`);
