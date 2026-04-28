@@ -33,22 +33,60 @@ mongoose.connect("mongodb+srv://laurentcity:police1234@cluster0.i3e40ch.mongodb.
 
 // ================= USER SCHEMA =================
 const userSchema = new mongoose.Schema({
+
     name: String,
-    username: { type: String, unique: true },
+
+    username: {
+        type: String,
+        unique: true
+    },
+
     email: String,
     password: String,
 
-    referralCode: { type: String, unique: true },
+    referralCode: {
+        type: String,
+        unique: true
+    },
+
     referredBy: String,
-    referrals: { type: [String], default: [] },
 
-    coins: { type: Number, default: 0 },
-    level: { type: Number, default: 1 },
+    referrals: {
+        type: [String],
+        default: []
+    },
 
-    lastMine: { type: Number, default: 0 },
-    totalMined: { type: Number, default: 0 },
+    coins: {
+        type: Number,
+        default: 0
+    },
 
-    lastActive: { type: Number, default: 0 } // 🟢 ACTIVE TRACK
+    level: {
+        type: Number,
+        default: 1
+    },
+
+    lastMine: {
+        type: Number,
+        default: 0
+    },
+
+    totalMined: {
+        type: Number,
+        default: 0
+    },
+
+    lastActive: {
+        type: Number,
+        default: 0
+    },
+
+    // 🚫 BAN SYSTEM
+    banned: {
+        type: Boolean,
+        default: false
+    }
+
 });
 
 const User = mongoose.model("User", userSchema);
@@ -57,42 +95,62 @@ const User = mongoose.model("User", userSchema);
 function generateReferralCode(username) {
     return username + Math.floor(1000 + Math.random() * 9000);
 }
- // ================= ROUTES =================
 
- // Home (Login page)
- app.get("/", (req, res) => {
-     res.sendFile(path.join(__dirname, "public", "login.html"));
- });
+// ================= ROUTES =================
 
- // Register page
- app.get("/register", (req, res) => {
-     res.sendFile(path.join(__dirname, "public", "register.html"));
- });
+// Home
+app.get("/", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "login.html"));
+});
 
- // 🔐 Admin page
- app.get("/admin", (req, res) => {
-     res.sendFile(path.join(__dirname, "public", "admin.html"));
- });
+// Register
+app.get("/register", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "register.html"));
+});
+
+// Admin
+app.get("/admin", (req, res) => {
+    res.sendFile(path.join(__dirname, "public", "admin.html"));
+});
+
 // ================= REGISTER =================
 app.post("/register", async (req, res) => {
+
     try {
-        const { name, username, email, password, referral } = req.body;
+
+        const {
+            name,
+            username,
+            email,
+            password,
+            referral
+        } = req.body;
 
         if (!username || !password) {
-            return res.json({ message: "Missing fields ❌" });
+            return res.json({
+                message: "Missing fields ❌"
+            });
         }
 
         const existing = await User.findOne({ username });
+
         if (existing) {
-            return res.json({ message: "User already exists ❌" });
+            return res.json({
+                message: "User already exists ❌"
+            });
         }
 
         let refUser = null;
+
         if (referral) {
-            refUser = await User.findOne({ referralCode: referral });
+            refUser = await User.findOne({
+                referralCode: referral
+            });
         }
 
+        // Generate unique referral code
         let referralCode = generateReferralCode(username);
+
         while (await User.findOne({ referralCode })) {
             referralCode = generateReferralCode(username);
         }
@@ -110,10 +168,14 @@ app.post("/register", async (req, res) => {
 
         await newUser.save();
 
+        // Referral reward
         if (refUser) {
+
             refUser.coins += 5;
             refUser.totalMined += 5;
+
             refUser.referrals.push(username);
+
             await refUser.save();
         }
 
@@ -123,23 +185,43 @@ app.post("/register", async (req, res) => {
         });
 
     } catch (err) {
+
         console.log(err);
-        res.json({ message: "Register error ❌" });
+
+        res.json({
+            message: "Register error ❌"
+        });
+
     }
+
 });
 
 // ================= LOGIN =================
 app.post("/login", async (req, res) => {
+
     try {
+
         const { username, password } = req.body;
 
         const user = await User.findOne({ username });
 
+        // Wrong credentials
         if (!user || user.password !== password) {
-            return res.json({ message: "Wrong username or password ❌" });
+            return res.json({
+                message: "Wrong username or password ❌"
+            });
         }
 
+        // 🚫 BANNED USER
+        if (user.banned) {
+            return res.json({
+                message: "Account banned 🚫"
+            });
+        }
+
+        // Active user tracking
         user.lastActive = Date.now();
+
         await user.save();
 
         res.json({
@@ -150,66 +232,227 @@ app.post("/login", async (req, res) => {
         });
 
     } catch (err) {
-        res.json({ message: "Server error ❌" });
+
+        console.log(err);
+
+        res.json({
+            message: "Server error ❌"
+        });
+
     }
+
 });
 
-// ================= 🔐 ADMIN LOGIN =================
-app.post("/admin-login", (req, res) => {
-    const { username, password } = req.body;
+// ================= AUTO LOGIN =================
+app.post("/auto-login", async (req, res) => {
 
-    if (username === ADMIN.username && password === ADMIN.password) {
-        return res.json({ ok: true });
+    try {
+
+        const user = await User.findOne({
+            username: req.body.username
+        });
+
+        if (!user) {
+            return res.json({
+                ok: false
+            });
+        }
+
+        if (user.banned) {
+            return res.json({
+                ok: false
+            });
+        }
+
+        user.lastActive = Date.now();
+
+        await user.save();
+
+        res.json({
+            ok: true,
+            username: user.username,
+            coins: user.coins,
+            level: user.level
+        });
+
+    } catch (err) {
+
+        res.json({
+            ok: false
+        });
+
     }
 
-    res.json({ ok: false, message: "Invalid admin credentials ❌" });
+});
+
+// ================= ADMIN LOGIN =================
+app.post("/admin-login", (req, res) => {
+
+    const { username, password } = req.body;
+
+    if (
+        username === ADMIN.username &&
+        password === ADMIN.password
+    ) {
+        return res.json({
+            ok: true
+        });
+    }
+
+    res.json({
+        ok: false,
+        message: "Invalid admin credentials ❌"
+    });
+
 });
 
 // ================= ADMIN USERS =================
 app.get("/admin-users", async (req, res) => {
+
     try {
-        const users = await User.find({}, "-password");
+
+        const users = await User.find({}, "-password")
+            .sort({ createdAt: -1 });
+
         res.json(users);
-    } catch {
-        res.json({ message: "Error loading users ❌" });
+
+    } catch (err) {
+
+        res.json({
+            message: "Error loading users ❌"
+        });
+
     }
+
+});
+
+// ================= ADMIN DELETE USER =================
+app.post("/admin-delete-user", async (req, res) => {
+
+    try {
+
+        await User.deleteOne({
+            username: req.body.username
+        });
+
+        res.json({
+            ok: true,
+            message: "User deleted ❌"
+        });
+
+    } catch (err) {
+
+        res.json({
+            ok: false,
+            message: "Delete failed ❌"
+        });
+
+    }
+
+});
+
+// ================= ADMIN BAN USER =================
+app.post("/admin-ban-user", async (req, res) => {
+
+    try {
+
+        const user = await User.findOne({
+            username: req.body.username
+        });
+
+        if (!user) {
+            return res.json({
+                ok: false,
+                message: "User not found ❌"
+            });
+        }
+
+        // Toggle ban
+        user.banned = !user.banned;
+
+        await user.save();
+
+        res.json({
+            ok: true,
+            banned: user.banned,
+            message: user.banned
+                ? "User banned 🚫"
+                : "User unbanned ✅"
+        });
+
+    } catch (err) {
+
+        res.json({
+            ok: false,
+            message: "Ban error ❌"
+        });
+
+    }
+
 });
 
 // ================= LEADERBOARD =================
 app.get("/leaderboard", async (req, res) => {
+
     try {
+
         const users = await User.find({})
             .sort({ coins: -1 })
             .limit(10);
 
         res.json(users);
-    } catch {
-        res.json({ message: "Leaderboard error ❌" });
+
+    } catch (err) {
+
+        res.json({
+            message: "Leaderboard error ❌"
+        });
+
     }
+
 });
 
 // ================= ACTIVE USERS =================
 app.get("/active-users", async (req, res) => {
+
     try {
+
         const now = Date.now();
+
         const activeLimit = 5 * 60 * 1000;
 
         const users = await User.find({
-            lastActive: { $gte: now - activeLimit }
+            lastActive: {
+                $gte: now - activeLimit
+            }
         });
 
         res.json(users);
-    } catch {
-        res.json({ message: "Active users error ❌" });
+
+    } catch (err) {
+
+        res.json({
+            message: "Active users error ❌"
+        });
+
     }
+
 });
 
 // ================= USER INFO =================
 app.post("/user-info", async (req, res) => {
-    try {
-        const user = await User.findOne({ username: req.body.username });
 
-        if (!user) return res.json({ message: "User not found ❌" });
+    try {
+
+        const user = await User.findOne({
+            username: req.body.username
+        });
+
+        if (!user) {
+            return res.json({
+                message: "User not found ❌"
+            });
+        }
 
         res.json({
             referralCode: user.referralCode,
@@ -217,22 +460,53 @@ app.post("/user-info", async (req, res) => {
             referralEarnings: user.referrals.length * 5
         });
 
-    } catch {
-        res.json({ message: "Error ❌" });
+    } catch (err) {
+
+        res.json({
+            message: "Error ❌"
+        });
+
     }
+
 });
 
 // ================= MINE =================
 app.post("/mine", async (req, res) => {
+
     try {
-        const user = await User.findOne({ username: req.body.username });
-        if (!user) return res.json({ message: "User not found ❌" });
+
+        const user = await User.findOne({
+            username: req.body.username
+        });
+
+        if (!user) {
+            return res.json({
+                message: "User not found ❌"
+            });
+        }
+
+        // Block banned users
+        if (user.banned) {
+            return res.json({
+                message: "Account banned 🚫"
+            });
+        }
 
         const now = Date.now();
+
+        // 24 HOURS
         const cooldown = 24 * 60 * 60 * 1000;
 
-        if (user.lastMine && now - user.lastMine < cooldown) {
-            const remaining = Math.ceil((cooldown - (now - user.lastMine)) / 1000);
+        // Cooldown check
+        if (
+            user.lastMine &&
+            now - user.lastMine < cooldown
+        ) {
+
+            const remaining = Math.ceil(
+                (cooldown - (now - user.lastMine)) / 1000
+            );
+
             return res.json({
                 message: "Wait cooldown ❌",
                 coins: user.coins,
@@ -241,10 +515,12 @@ app.post("/mine", async (req, res) => {
             });
         }
 
+        // Mining reward
         const reward = user.level * 2;
 
         user.coins += reward;
         user.totalMined += reward;
+
         user.lastMine = now;
         user.lastActive = now;
 
@@ -256,25 +532,51 @@ app.post("/mine", async (req, res) => {
             level: user.level
         });
 
-    } catch {
-        res.json({ message: "Mine error ❌" });
+    } catch (err) {
+
+        console.log(err);
+
+        res.json({
+            message: "Mine error ❌"
+        });
+
     }
+
 });
 
 // ================= UPGRADE =================
 app.post("/upgrade", async (req, res) => {
+
     try {
-        const user = await User.findOne({ username: req.body.username });
-        if (!user) return res.json({ message: "User not found ❌" });
+
+        const user = await User.findOne({
+            username: req.body.username
+        });
+
+        if (!user) {
+            return res.json({
+                message: "User not found ❌"
+            });
+        }
+
+        if (user.banned) {
+            return res.json({
+                message: "Account banned 🚫"
+            });
+        }
 
         const cost = user.level * 10;
 
         if (user.coins < cost) {
-            return res.json({ message: "Not enough coins ❌" });
+            return res.json({
+                message: "Not enough coins ❌"
+            });
         }
 
         user.coins -= cost;
+
         user.level += 1;
+
         user.lastActive = Date.now();
 
         await user.save();
@@ -285,35 +587,63 @@ app.post("/upgrade", async (req, res) => {
             level: user.level
         });
 
-    } catch {
-        res.json({ message: "Upgrade error ❌" });
+    } catch (err) {
+
+        res.json({
+            message: "Upgrade error ❌"
+        });
+
     }
+
 });
 
 // ================= TIME LEFT =================
 app.post("/mine-time-left", async (req, res) => {
+
     try {
-        const user = await User.findOne({ username: req.body.username });
 
-        if (!user) return res.json({ remaining: 0 });
+        const user = await User.findOne({
+            username: req.body.username
+        });
 
-        const cooldown = 24 * 60 * 60 * 1000;
-        const now = Date.now();
-
-        if (!user.lastMine || now - user.lastMine >= cooldown) {
-            return res.json({ remaining: 0 });
+        if (!user) {
+            return res.json({
+                remaining: 0
+            });
         }
 
-        const remaining = Math.ceil((cooldown - (now - user.lastMine)) / 1000);
+        const cooldown = 24 * 60 * 60 * 1000;
 
-        res.json({ remaining });
+        const now = Date.now();
 
-    } catch {
-        res.json({ remaining: 0 });
+        if (
+            !user.lastMine ||
+            now - user.lastMine >= cooldown
+        ) {
+            return res.json({
+                remaining: 0
+            });
+        }
+
+        const remaining = Math.ceil(
+            (cooldown - (now - user.lastMine)) / 1000
+        );
+
+        res.json({
+            remaining
+        });
+
+    } catch (err) {
+
+        res.json({
+            remaining: 0
+        });
+
     }
+
 });
 
-// ================= START =================
+// ================= SERVER START =================
 app.listen(PORT, () => {
     console.log(`LCM running on port ${PORT} 🚀`);
 });
