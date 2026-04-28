@@ -109,8 +109,16 @@ function loadUsers() {
                     <td>${u.coins}</td>
                     <td>${u.level}</td>
                     <td>${u.referrals.length}</td>
-                    <td><button onclick="deleteUser('${u.username}')">Delete</button></td>
-                </tr>
+                    <td>
+    <button onclick="deleteUser('${u.username}')">
+        ❌ Delete
+    </button>
+
+    <button onclick="toggleBan('${u.username}')">
+        ${u.banned ? '✅ Unban' : '🚫 Ban'}
+    </button>
+
+</td>
             `;
         });
     });
@@ -148,16 +156,48 @@ function loadActive() {
 
 // ================= DELETE USER =================
 function deleteUser(username) {
+
+    if (!confirm("Delete " + username + " ?")) {
+        return;
+    }
+
     fetch("/admin-delete-user", {
         method: "POST",
-        headers: {"Content-Type":"application/json"},
+        headers: {
+            "Content-Type":"application/json"
+        },
         body: JSON.stringify({ username })
     })
     .then(r => r.json())
     .then(d => {
+
         alert(d.message);
+
         loadUsers();
+
     });
+
+}
+
+// ================= BAN / UNBAN USER =================
+function toggleBan(username) {
+
+    fetch("/admin-ban-user", {
+        method: "POST",
+        headers: {
+            "Content-Type":"application/json"
+        },
+        body: JSON.stringify({ username })
+    })
+    .then(r => r.json())
+    .then(d => {
+
+        alert(d.message);
+
+        loadUsers();
+
+    });
+
 }
 
 </script>
