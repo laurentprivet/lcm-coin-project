@@ -410,6 +410,46 @@ app.post("/admin-ban-user", async (req, res) => {
     }
 
 });
+// ================= ADMIN EDIT BALANCE =================
+app.post("/admin-edit-balance", async (req, res) => {
+
+    try {
+
+        const { username, amount } = req.body;
+
+        const user = await User.findOne({ username });
+
+        if (!user) {
+            return res.json({
+                ok: false,
+                message: "User not found ❌"
+            });
+        }
+
+        user.coins += Number(amount);
+
+        // prevent negative balance
+        if (user.coins < 0) {
+            user.coins = 0;
+        }
+
+        await user.save();
+
+        res.json({
+            ok: true,
+            message: `Balance updated for ${username} ✅`
+        });
+
+    } catch (err) {
+
+        res.json({
+            ok: false,
+            message: "Balance update error ❌"
+        });
+
+    }
+
+});
 
 // ================= LEADERBOARD =================
 app.get("/leaderboard", async (req, res) => {

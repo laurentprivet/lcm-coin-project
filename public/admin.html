@@ -13,6 +13,7 @@
 
     <!-- LOGIN -->
     <div id="adminLogin" class="card">
+
         <h3>Admin Login</h3>
 
         <input id="adminUser" placeholder="Username">
@@ -21,6 +22,7 @@
         <button onclick="adminLogin()">Login</button>
 
         <p id="adminMsg"></p>
+
     </div>
 
     <!-- DASHBOARD -->
@@ -51,30 +53,40 @@
 
         </div>
 
+        <!-- USERS -->
         <h3>👥 All Users</h3>
 
         <table border="1" width="100%">
+
             <thead>
+
                 <tr>
                     <th>Username</th>
                     <th>Coins</th>
                     <th>Level</th>
                     <th>Referrals</th>
                     <th>Action</th>
+                    <th>Balance Control</th>
                 </tr>
+
             </thead>
 
             <tbody id="userTable"></tbody>
+
         </table>
 
         <hr>
 
+        <!-- LEADERBOARD -->
         <h3>🏆 Leaderboard</h3>
+
         <ul id="leaderboard"></ul>
 
         <hr>
 
+        <!-- ACTIVE USERS -->
         <h3>🟢 Active Users</h3>
+
         <ul id="activeUsers"></ul>
 
     </div>
@@ -92,11 +104,18 @@ function adminLogin() {
     const password = document.getElementById("adminPass").value;
 
     fetch("/admin-login", {
+
         method: "POST",
+
         headers: {
             "Content-Type":"application/json"
         },
-        body: JSON.stringify({ username, password })
+
+        body: JSON.stringify({
+            username,
+            password
+        })
+
     })
     .then(r => r.json())
     .then(d => {
@@ -104,6 +123,7 @@ function adminLogin() {
         if (d.ok) {
 
             document.getElementById("adminLogin").style.display = "none";
+
             document.getElementById("adminPanel").style.display = "block";
 
             startAutoRefresh();
@@ -126,7 +146,9 @@ function startAutoRefresh() {
     loadActive();
     loadAnalytics();
 
-    if (adminInterval) clearInterval(adminInterval);
+    if (adminInterval) {
+        clearInterval(adminInterval);
+    }
 
     adminInterval = setInterval(() => {
 
@@ -139,7 +161,7 @@ function startAutoRefresh() {
 
 }
 
-// ================= USERS =================
+// ================= LOAD USERS =================
 function loadUsers() {
 
     fetch("/admin-users")
@@ -154,9 +176,13 @@ function loadUsers() {
 
             table.innerHTML += `
                 <tr>
+
                     <td>${u.username}</td>
+
                     <td>${u.coins}</td>
+
                     <td>${u.level}</td>
+
                     <td>${u.referrals.length}</td>
 
                     <td>
@@ -167,6 +193,18 @@ function loadUsers() {
 
                         <button onclick="toggleBan('${u.username}')">
                             ${u.banned ? '✅ Unban' : '🚫 Ban'}
+                        </button>
+
+                    </td>
+
+                    <td>
+
+                        <button onclick="editBalance('${u.username}', 10)">
+                            +10
+                        </button>
+
+                        <button onclick="editBalance('${u.username}', -10)">
+                            -10
                         </button>
 
                     </td>
@@ -195,7 +233,7 @@ function loadLeaderboard() {
 
             list.innerHTML += `
                 <li>
-                    #${i+1} ${u.username} - ${u.coins} LCM
+                    #${i + 1} ${u.username} - ${u.coins} LCM
                 </li>
             `;
 
@@ -250,6 +288,7 @@ function loadAnalytics() {
         });
 
         document.getElementById("totalCoins").innerText = totalCoins;
+
         document.getElementById("totalMined").innerText = totalMined;
 
     });
@@ -264,11 +303,46 @@ function deleteUser(username) {
     }
 
     fetch("/admin-delete-user", {
+
         method: "POST",
+
         headers: {
             "Content-Type":"application/json"
         },
-        body: JSON.stringify({ username })
+
+        body: JSON.stringify({
+            username
+        })
+
+    })
+    .then(r => r.json())
+    .then(d => {
+
+        alert(d.message);
+
+        loadUsers();
+        loadLeaderboard();
+        loadAnalytics();
+
+    });
+
+}
+
+// ================= BAN / UNBAN =================
+function toggleBan(username) {
+
+    fetch("/admin-ban-user", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type":"application/json"
+        },
+
+        body: JSON.stringify({
+            username
+        })
+
     })
     .then(r => r.json())
     .then(d => {
@@ -281,15 +355,22 @@ function deleteUser(username) {
 
 }
 
-// ================= BAN / UNBAN USER =================
-function toggleBan(username) {
+// ================= EDIT BALANCE =================
+function editBalance(username, amount) {
 
-    fetch("/admin-ban-user", {
+    fetch("/admin-edit-balance", {
+
         method: "POST",
+
         headers: {
             "Content-Type":"application/json"
         },
-        body: JSON.stringify({ username })
+
+        body: JSON.stringify({
+            username,
+            amount
+        })
+
     })
     .then(r => r.json())
     .then(d => {
@@ -297,6 +378,8 @@ function toggleBan(username) {
         alert(d.message);
 
         loadUsers();
+        loadLeaderboard();
+        loadAnalytics();
 
     });
 
