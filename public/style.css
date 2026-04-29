@@ -9,7 +9,7 @@ body {
 
 .container {
     width: 90%;
-    max-width: 500px;
+    max-width: 900px;
     margin: auto;
     padding-top: 30px;
 }
@@ -17,6 +17,7 @@ body {
 h1 {
     text-align: center;
     color: #38bdf8;
+    margin-bottom: 20px;
 }
 
 /* ================= CARD ================= */
@@ -24,18 +25,19 @@ h1 {
     background: #1e293b;
     padding: 20px;
     margin-top: 20px;
-    border-radius: 12px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.4);
 }
 
 /* ================= INPUT ================= */
 input {
     width: 100%;
-    padding: 10px;
+    padding: 12px;
     margin-top: 10px;
     border: none;
     border-radius: 8px;
     outline: none;
+    box-sizing: border-box;
 }
 
 /* ================= BUTTON ================= */
@@ -204,4 +206,80 @@ button:hover {
 .coin:hover {
     transform: scale(1.08);
     transition: 0.3s;
+}
+
+/* ================= TABLE ================= */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+table th,
+table td {
+    border: 1px solid #475569;
+    padding: 10px;
+    text-align: center;
+}
+
+table th {
+    background: #0f172a;
+    color: white;
+}
+
+/* ================= ANALYTICS ================= */
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-box {
+    background: #111c44;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    border: 1px solid #2e4fa3;
+}
+
+.stat-box h3 {
+    font-size: 28px;
+    color: #35b9ff;
+    margin-bottom: 10px;
+}
+
+.stat-box p {
+    color: white;
+    font-weight: bold;
+}
+
+/* ================= LISTS ================= */
+ul {
+    padding-left: 20px;
+}
+
+li {
+    margin-top: 8px;
+}
+
+/* ================= RESPONSIVE ================= */
+@media(max-width:700px){
+
+    .container{
+        width:95%;
+    }
+
+    table{
+        font-size:12px;
+    }
+
+    button{
+        width:100%;
+    }
+
+    .actions{
+        flex-direction:column;
+    }
+
 }

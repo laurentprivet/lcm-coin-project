@@ -26,6 +26,31 @@
     <!-- DASHBOARD -->
     <div id="adminPanel" class="card" style="display:none;">
 
+        <!-- ANALYTICS -->
+        <div class="stats">
+
+            <div class="stat-box">
+                <h3 id="totalUsers">0</h3>
+                <p>👥 Total Users</p>
+            </div>
+
+            <div class="stat-box">
+                <h3 id="totalCoins">0</h3>
+                <p>💰 Total Coins</p>
+            </div>
+
+            <div class="stat-box">
+                <h3 id="onlineUsers">0</h3>
+                <p>🟢 Online Users</p>
+            </div>
+
+            <div class="stat-box">
+                <h3 id="totalMined">0</h3>
+                <p>⛏️ Total Mined</p>
+            </div>
+
+        </div>
+
         <h3>👥 All Users</h3>
 
         <table border="1" width="100%">
@@ -38,6 +63,7 @@
                     <th>Action</th>
                 </tr>
             </thead>
+
             <tbody id="userTable"></tbody>
         </table>
 
@@ -61,97 +87,173 @@ let adminInterval = null;
 
 // ================= ADMIN LOGIN =================
 function adminLogin() {
+
     const username = document.getElementById("adminUser").value;
     const password = document.getElementById("adminPass").value;
 
     fetch("/admin-login", {
         method: "POST",
-        headers: {"Content-Type":"application/json"},
+        headers: {
+            "Content-Type":"application/json"
+        },
         body: JSON.stringify({ username, password })
     })
     .then(r => r.json())
     .then(d => {
+
         if (d.ok) {
+
             document.getElementById("adminLogin").style.display = "none";
             document.getElementById("adminPanel").style.display = "block";
 
-            startAutoRefresh(); // 🔥 LIVE MODE START
+            startAutoRefresh();
+
         } else {
+
             document.getElementById("adminMsg").innerText = d.message;
+
         }
+
     });
+
 }
 
 // ================= AUTO REFRESH =================
 function startAutoRefresh() {
+
+    loadUsers();
+    loadLeaderboard();
+    loadActive();
+    loadAnalytics();
+
     if (adminInterval) clearInterval(adminInterval);
 
     adminInterval = setInterval(() => {
+
         loadUsers();
         loadLeaderboard();
         loadActive();
-    }, 3000); // every 3 sec
+        loadAnalytics();
+
+    }, 3000);
+
 }
 
 // ================= USERS =================
 function loadUsers() {
+
     fetch("/admin-users")
     .then(r => r.json())
     .then(users => {
 
         const table = document.getElementById("userTable");
+
         table.innerHTML = "";
 
         users.forEach(u => {
+
             table.innerHTML += `
                 <tr>
                     <td>${u.username}</td>
                     <td>${u.coins}</td>
                     <td>${u.level}</td>
                     <td>${u.referrals.length}</td>
+
                     <td>
-    <button onclick="deleteUser('${u.username}')">
-        ❌ Delete
-    </button>
 
-    <button onclick="toggleBan('${u.username}')">
-        ${u.banned ? '✅ Unban' : '🚫 Ban'}
-    </button>
+                        <button onclick="deleteUser('${u.username}')">
+                            ❌ Delete
+                        </button>
 
-</td>
+                        <button onclick="toggleBan('${u.username}')">
+                            ${u.banned ? '✅ Unban' : '🚫 Ban'}
+                        </button>
+
+                    </td>
+
+                </tr>
             `;
+
         });
+
     });
+
 }
 
 // ================= LEADERBOARD =================
 function loadLeaderboard() {
+
     fetch("/leaderboard")
     .then(r => r.json())
     .then(users => {
 
         const list = document.getElementById("leaderboard");
+
         list.innerHTML = "";
 
         users.forEach((u, i) => {
-            list.innerHTML += `<li>#${i+1} ${u.username} - ${u.coins} LCM</li>`;
+
+            list.innerHTML += `
+                <li>
+                    #${i+1} ${u.username} - ${u.coins} LCM
+                </li>
+            `;
+
         });
+
     });
+
 }
 
 // ================= ACTIVE USERS =================
 function loadActive() {
+
     fetch("/active-users")
     .then(r => r.json())
     .then(users => {
 
         const list = document.getElementById("activeUsers");
+
         list.innerHTML = "";
 
         users.forEach(u => {
-            list.innerHTML += `<li>🟢 ${u.username}</li>`;
+
+            list.innerHTML += `
+                <li>🟢 ${u.username}</li>
+            `;
+
         });
+
+        document.getElementById("onlineUsers").innerText = users.length;
+
     });
+
+}
+
+// ================= ANALYTICS =================
+function loadAnalytics() {
+
+    fetch("/admin-users")
+    .then(r => r.json())
+    .then(users => {
+
+        document.getElementById("totalUsers").innerText = users.length;
+
+        let totalCoins = 0;
+        let totalMined = 0;
+
+        users.forEach(u => {
+
+            totalCoins += u.coins;
+            totalMined += u.totalMined;
+
+        });
+
+        document.getElementById("totalCoins").innerText = totalCoins;
+        document.getElementById("totalMined").innerText = totalMined;
+
+    });
+
 }
 
 // ================= DELETE USER =================
@@ -199,6 +301,7 @@ function toggleBan(username) {
     });
 
 }
+
 </script>
 
 </body>
