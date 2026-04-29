@@ -1,7 +1,7 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
-
+const bcrypt = require("bcryptjs");
 const app = express();
 
 // ================= ADMIN =================
@@ -206,11 +206,22 @@ app.post("/login", async (req, res) => {
         const user = await User.findOne({ username });
 
         // Wrong credentials
-        if (!user || user.password !== password) {
-            return res.json({
-                message: "Wrong username or password ❌"
-            });
-        }
+        if (!user) {
+    return res.json({
+        message: "Wrong username or password ❌"
+    });
+}
+
+const validPassword = await bcrypt.compare(
+    password,
+    user.password
+);
+
+if (!validPassword) {
+    return res.json({
+        message: "Wrong username or password ❌"
+    });
+}
 
         // 🚫 BANNED USER
         if (user.banned) {
