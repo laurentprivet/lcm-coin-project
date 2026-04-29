@@ -6,7 +6,15 @@ let countdownInterval = null;
 function el(id) {
     return document.getElementById(id);
 }
-
+// ================= open/close menu =================
+function toggleMenu() {
+    const menu = document.getElementById("menu");
+    if (menu.style.display === "block") {
+        menu.style.display = "none";
+    } else {
+        menu.style.display = "block";
+    }
+}
 // ================= MESSAGE =================
 function showMessage(text, color = "black") {
     const msg = el("message");

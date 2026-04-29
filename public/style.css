@@ -7,17 +7,70 @@ body {
     padding: 0;
 }
 
+/* ================= CONTAINER ================= */
 .container {
     width: 90%;
-    max-width: 900px;
+    max-width: 1000px;
     margin: auto;
     padding-top: 30px;
 }
 
+/* ================= TITLES ================= */
 h1 {
     text-align: center;
     color: #38bdf8;
     margin-bottom: 20px;
+}
+
+/* ================= MENU ================= */
+.menu-icon {
+    font-size: 30px;
+    cursor: pointer;
+    padding: 15px;
+    color: white;
+}
+
+.menu {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 10px;
+    background: #111827;
+    padding: 10px;
+    border-radius: 10px;
+    z-index: 1000;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+
+.menu a {
+    display: block;
+    color: white;
+    padding: 10px;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: 0.3s;
+}
+
+.menu a:hover {
+    background: #1e293b;
+}
+
+/* ================= HERO SECTION ================= */
+.hero {
+    text-align: center;
+    padding: 50px 20px;
+    background: linear-gradient(to right, #111827, #1e293b);
+    border-bottom: 1px solid #334155;
+}
+
+.hero h1 {
+    font-size: 50px;
+    margin-bottom: 10px;
+}
+
+.hero p {
+    font-size: 18px;
+    color: #cbd5e1;
 }
 
 /* ================= CARD ================= */
@@ -27,6 +80,34 @@ h1 {
     margin-top: 20px;
     border-radius: 15px;
     box-shadow: 0 0 15px rgba(0,0,0,0.4);
+}
+
+/* ================= WHITEPAPER SECTION ================= */
+.section {
+    background: #111827;
+    padding: 25px;
+    margin-bottom: 20px;
+    border-radius: 15px;
+}
+
+.section h2 {
+    color: #38bdf8;
+    margin-bottom: 15px;
+}
+
+.section p,
+.section li {
+    color: #e2e8f0;
+    line-height: 1.8;
+}
+
+/* ================= ROADMAP ================= */
+.roadmap-phase {
+    background: #1e293b;
+    padding: 15px;
+    border-left: 5px solid #38bdf8;
+    margin-bottom: 15px;
+    border-radius: 10px;
 }
 
 /* ================= INPUT ================= */
@@ -151,7 +232,7 @@ button:hover {
     font-weight: bold;
 }
 
-/* ================= INNER ENGRAVED CIRCLE ================= */
+/* ================= INNER COIN ================= */
 .coin-inner {
     width: 75px;
     height: 75px;
@@ -263,23 +344,40 @@ li {
     margin-top: 8px;
 }
 
+/* ================= FOOTER ================= */
+.footer {
+    text-align: center;
+    padding: 20px;
+    background: #111827;
+    color: #94a3b8;
+    margin-top: 30px;
+}
+
 /* ================= RESPONSIVE ================= */
 @media(max-width:700px){
 
-    .container{
-        width:95%;
+    .container {
+        width: 95%;
     }
 
-    table{
-        font-size:12px;
+    table {
+        font-size: 12px;
     }
 
-    button{
-        width:100%;
+    button {
+        width: 100%;
     }
 
-    .actions{
-        flex-direction:column;
+    .actions {
+        flex-direction: column;
+    }
+
+    .hero h1 {
+        font-size: 35px;
+    }
+
+    .hero p {
+        font-size: 16px;
     }
 
 }
