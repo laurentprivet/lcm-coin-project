@@ -149,22 +149,31 @@ app.post("/register", async (req, res) => {
         }
 
         // Generate unique referral code
-        let referralCode = generateReferralCode(username);
+let referralCode = generateReferralCode(username);
 
-        while (await User.findOne({ referralCode })) {
-            referralCode = generateReferralCode(username);
-        }
+while (await User.findOne({ referralCode })) {
+    referralCode = generateReferralCode(username);
+}
 
-        const newUser = new User({
-            name,
-            username,
-            email,
-            password,
-            referralCode,
-            referredBy: referral || null,
-            referrals: [],
-            lastActive: Date.now()
-        });
+// 🔐 HASH PASSWORD
+const hashedPassword = await bcrypt.hash(password, 10);
+
+// Create user
+const newUser = new User({
+    name,
+    username,
+    email,
+
+    // 🔐 SAVE ENCRYPTED PASSWORD
+    password: hashedPassword,
+
+    referralCode,
+    referredBy: referral || null,
+
+    referrals: [],
+
+    lastActive: Date.now()
+});
 
         await newUser.save();
 
