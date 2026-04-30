@@ -90,6 +90,7 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model("User", userSchema);
+let globalAnnouncement = "🚀 Welcome to LCM Mining Platform";
 
 // ================= REF CODE =================
 function generateReferralCode(username) {
@@ -448,6 +449,35 @@ app.post("/admin-edit-balance", async (req, res) => {
         });
 
     }
+
+});
+// ================= SEND ANNOUNCEMENT =================
+app.post("/send-announcement", (req, res) => {
+
+    const { message } = req.body;
+
+    if (!message) {
+        return res.json({
+            ok: false,
+            message: "Message required ❌"
+        });
+    }
+
+    globalAnnouncement = message;
+
+    res.json({
+        ok: true,
+        message: "Announcement sent ✅"
+    });
+
+});
+
+// ================= GET ANNOUNCEMENT =================
+app.get("/get-announcement", (req, res) => {
+
+    res.json({
+        announcement: globalAnnouncement
+    });
 
 });
 
