@@ -6,12 +6,26 @@
 </head>
 
 <body>
+
+<!-- MENU -->
 <div id="menu" class="menu">
     <a href="index.html">Home</a>
     <a href="wallet.html">Wallet</a>
     <a href="whitepaper.html">Whitepaper</a>
 </div>
+
 <div class="container">
+
+    <!-- 📢 GLOBAL ANNOUNCEMENT -->
+    <div class="card">
+
+        <h3>📢 Latest Announcement</h3>
+
+        <p id="announcementBox">
+            Loading announcement...
+        </p>
+
+    </div>
 
     <h1>⛏️ LCM Mining</h1>
 
@@ -24,11 +38,17 @@
         <input id="password" type="password" placeholder="Password">
 
         <div class="buttons">
-            <button onclick="login()">Login</button>
+
+            <button onclick="login()">
+                Login
+            </button>
 
             <a href="/register">
-                <button type="button">Register</button>
+                <button type="button">
+                    Register
+                </button>
             </a>
+
         </div>
 
     </div>
@@ -37,60 +57,135 @@
     <div id="dashboard" class="card" style="display:none;">
 
         <div class="actions">
-            <!-- 🔥 FIX: ADD ID HERE -->
-            <button id="mineBtn" onclick="mine()">⛏️ Mine</button>
-            <button onclick="upgrade()">⬆️ Upgrade</button>
+
+            <button id="mineBtn" onclick="mine()">
+                ⛏️ Mine
+            </button>
+
+            <button onclick="upgrade()">
+                ⬆️ Upgrade
+            </button>
+
         </div>
 
         <!-- COIN -->
         <div class="coin-container">
+
             <div class="coin">
 
                 <svg viewBox="0 0 200 200" class="coin-svg">
-                    <path id="topCurve" d="M 30 100 A 70 70 0 0 1 170 100" fill="transparent"/>
+
+                    <path
+                        id="topCurve"
+                        d="M 30 100 A 70 70 0 0 1 170 100"
+                        fill="transparent"
+                    />
+
                     <text>
-                        <textPath href="#topCurve" startOffset="50%" text-anchor="middle">
+
+                        <textPath
+                            href="#topCurve"
+                            startOffset="50%"
+                            text-anchor="middle"
+                        >
                             LIQUID CRYPTO MONEY
                         </textPath>
+
                     </text>
+
                 </svg>
 
                 <div class="coin-inner">
-                    <div class="coin-center">LCM</div>
+                    <div class="coin-center">
+                        LCM
+                    </div>
                 </div>
 
-                <div class="coin-bottom">DIGITAL</div>
+                <div class="coin-bottom">
+                    DIGITAL
+                </div>
 
             </div>
+
         </div>
 
         <!-- STATS -->
-        <p>💰 Balance: <span id="balance">0</span> LCM</p>
-        <p>⭐ Level: <span id="level">1</span></p>
+        <p>
+            💰 Balance:
+            <span id="balance">0</span>
+            LCM
+        </p>
 
-        <!-- 🔥 REFERRAL SECTION -->
-        <p>👥 Referrals: <span id="refCount">0</span></p>
-        <p>💰 Referral Earnings: <span id="refEarn">0</span> LCM</p>
+        <p>
+            ⭐ Level:
+            <span id="level">1</span>
+        </p>
+
+        <!-- REFERRALS -->
+        <p>
+            👥 Referrals:
+            <span id="refCount">0</span>
+        </p>
+
+        <p>
+            💰 Referral Earnings:
+            <span id="refEarn">0</span>
+            LCM
+        </p>
 
         <p>🔗 Your Referral Link:</p>
+
         <input id="refLink" readonly>
 
-        <button onclick="copyLink()">Copy Link</button>
+        <button onclick="copyLink()">
+            Copy Link
+        </button>
 
         <!-- TIMER -->
-        <p id="cooldown">⏳ Loading timer...</p>
+        <p id="cooldown">
+            ⏳ Loading timer...
+        </p>
 
         <!-- MESSAGE -->
         <p id="message"></p>
 
         <!-- LOGOUT -->
-        <button onclick="logout()">🚪 Logout</button>
+        <button onclick="logout()">
+            🚪 Logout
+        </button>
 
     </div>
 
 </div>
 
+<!-- MAIN SCRIPT -->
 <script src="script.js"></script>
+
+<!-- 📢 ANNOUNCEMENT SCRIPT -->
+<script>
+
+// ================= LOAD ANNOUNCEMENT =================
+function loadAnnouncement() {
+
+    fetch("/get-announcement")
+    .then(r => r.json())
+    .then(d => {
+
+        document.getElementById(
+            "announcementBox"
+        ).innerText = d.announcement;
+
+    });
+
+}
+
+// FIRST LOAD
+loadAnnouncement();
+
+// AUTO REFRESH
+setInterval(loadAnnouncement, 5000);
+
+</script>
 
 </body>
 </html>
