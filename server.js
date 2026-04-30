@@ -83,10 +83,19 @@ const userSchema = new mongoose.Schema({
 
     // 🚫 BAN SYSTEM
     banned: {
-        type: Boolean,
-        default: false
-    }
+    type: Boolean,
+    default: false
+},
 
+transactions: {
+    type: Array,
+    default: []
+},
+
+withdrawals: {
+    type: Array,
+    default: []
+}
 });
 
 const User = mongoose.model("User", userSchema);
@@ -686,7 +695,141 @@ app.post("/upgrade", async (req, res) => {
     }
 
 });
+// ================= TRANSFER LCM =================
+app.post("/transfer", async (req, res) => {
 
+    try {
+
+        const {
+            sender,
+            receiver,
+            amount
+        } = req.body;
+
+        const senderUser = await User.findOne({
+            username: sender
+        });
+
+        const receiverUser = await User.findOne({
+            username: receiver
+        });
+
+        if (!senderUser || !receiverUser) {
+            return res.json({
+                message: "User not found ❌"
+            });
+        }
+
+        if (sender === receiver) {
+            return res.json({
+                message: "Cannot send to yourself ❌"
+            });
+        }
+
+        const sendAmount = Number(amount);
+
+        if (sendAmount <= 0) {
+            return res.json({
+                message: "Invalid amount ❌"
+            });
+        }
+
+        if (senderUser.coins < sendAmount) {
+            return res.json({
+                message: "Insufficient balance ❌"
+            });
+        }
+
+        senderUser.coins -= sendAmount;
+        receiverUser.coins += sendAmount;
+
+        senderUser.transactions.push(
+            `Sent ${sendAmount} LCM to ${receiver}`
+        );
+
+        receiverUser.transactions.push(
+            `Received ${sendAmount} LCM from ${sender}`
+        );
+
+        await senderUser.save();
+        await receiverUser.save();
+
+        res.json({
+            message: "Transfer successful ✅",
+            balance: senderUser.coins
+        });
+
+        } catch (err) {
+
+        console.log(err);
+
+        res.json({
+            message: "Transfer error ❌"
+        });
+
+    }
+
+});
+// ================= WITHDRAW REQUEST =================
+app.post("/withdraw", async (req, res) => {
+
+    try {
+
+        const {
+            username,
+            amount,
+            wallet
+        } = req.body;
+
+        const user = await User.findOne({ username });
+
+        if (!user) {
+            return res.json({
+                message: "User not found ❌"
+            });
+        }
+
+        const withdrawAmount = Number(amount);
+
+        if (withdrawAmount <= 0) {
+            return res.json({
+                message: "Invalid amount ❌"
+            });
+        }
+
+        if (user.coins < withdrawAmount) {
+            return res.json({
+                message: "Insufficient balance ❌"
+            });
+        }
+
+        user.coins -= withdrawAmount;
+
+        user.withdrawals.push({
+            amount: withdrawAmount,
+            wallet,
+            status: "Pending",
+            date: new Date()
+        });
+
+        await user.save();
+
+        res.json({
+            message: "Withdrawal request submitted ✅",
+            balance: user.coins
+        });
+
+    } catch (err) {
+
+        console.log(err);
+
+        res.json({
+            message: "Withdrawal error ❌"
+        });
+
+    }
+
+});
 // ================= TIME LEFT =================
 app.post("/mine-time-left", async (req, res) => {
 
@@ -736,3 +879,72 @@ app.post("/mine-time-left", async (req, res) => {
 app.listen(PORT, () => {
     console.log(`LCM running on port ${PORT} 🚀`);
 });
+// ================= TRANSFER =================
+async function transferCoins() {
+
+    const receiver = document.getElementById("receiver").value;
+
+    const amount = document.getElementById("sendAmount").value;
+
+    const sender = localStorage.getItem("username");
+
+    const res = await fetch("/transfer", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type":"application/json"
+        },
+
+        body: JSON.stringify({
+            sender,
+            receiver,
+            amount
+        })
+
+    });
+
+    const data = await res.json();
+
+    document.getElementById("message").innerText = data.message;
+
+    if (data.balance !== undefined) {
+        document.getElementById("balance").innerText = data.balance;
+    }
+
+}
+
+// ================= WITHDRAW =================
+async function withdrawCoins() {
+
+    const username = localStorage.getItem("username");
+
+    const amount = document.getElementById("withdrawAmount").value;
+
+    const wallet = document.getElementById("walletAddress").value;
+
+    const res = await fetch("/withdraw", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type":"application/json"
+        },
+
+        body: JSON.stringify({
+            username,
+            amount,
+            wallet
+        })
+
+    });
+
+    const data = await res.json();
+
+    document.getElementById("message").innerText = data.message;
+
+    if (data.balance !== undefined) {
+        document.getElementById("balance").innerText = data.balance;
+    }
+
+}
