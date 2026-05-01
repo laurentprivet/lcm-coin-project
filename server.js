@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
 const bcrypt = require("bcryptjs");
+const multer = require("multer");
 const app = express();
 
 // ================= ADMIN =================
@@ -25,6 +26,16 @@ const PORT = process.env.PORT || 3000;
 // ================= MIDDLEWARE =================
 app.use(express.static("public"));
 app.use(express.json());
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, "public/uploads/");
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + "-" + file.originalname);
+    }
+});
+
+const upload = multer({ storage });
 
 // ================= MONGODB =================
 mongoose.connect("mongodb+srv://laurentcity:police1234@cluster0.i3e40ch.mongodb.net/?retryWrites=true&w=majority")
@@ -241,6 +252,18 @@ if (!validPassword) {
         message: "Wrong username or password ❌"
     });
 }
+app.post("/upload-video", upload.single("video"), (req, res) => {
+
+    if (!req.file) {
+        return res.json({ message: "No video uploaded ❌" });
+    }
+
+    res.json({
+        message: "Video uploaded successfully ✅",
+        file: "/uploads/" + req.file.filename
+    });
+
+});
 
         // 🚫 BANNED USER
         if (user.banned) {
