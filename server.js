@@ -280,7 +280,6 @@ app.post("/upload-video", upload.single("video"), (req, res) => {
         await user.save();
 
         res.json({
-            message: "Login successful ✅",
             username: user.username,
             coins: user.coins,
             level: user.level
