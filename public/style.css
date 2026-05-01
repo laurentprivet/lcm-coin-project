@@ -381,3 +381,66 @@ li {
     }
 
 }
+/* ================= MOBILE RESPONSIVE ================= */
+@media screen and (max-width: 768px) {
+
+    .container {
+        width: 95%;
+        padding-top: 15px;
+    }
+
+    h1 {
+        font-size: 24px;
+    }
+
+    .card {
+        padding: 15px;
+    }
+
+    input {
+        width: 100%;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    button {
+        width: 100%;
+        margin-top: 10px;
+        font-size: 16px;
+    }
+
+    .actions {
+        flex-direction: column;
+    }
+
+    .coin {
+        width: 100px;
+        height: 100px;
+    }
+
+    .coin-inner {
+        width: 60px;
+        height: 60px;
+    }
+
+    .coin-center {
+        font-size: 18px;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .menu {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+}
