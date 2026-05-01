@@ -444,3 +444,52 @@ li {
     }
 
 }
+/* ================= MOBILE MENU ================= */
+
+.menu-icon {
+
+    font-size: 30px;
+    cursor: pointer;
+
+    color: white;
+
+    padding: 10px 20px;
+
+}
+
+/* MENU BOX */
+.menu {
+
+    display: none;
+
+    flex-direction: column;
+
+    background: #1e293b;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    margin: 10px;
+
+}
+
+/* MENU LINKS */
+.menu a {
+
+    color: white;
+
+    text-decoration: none;
+
+    padding: 12px;
+
+    border-bottom: 1px solid #334155;
+
+}
+
+/* SHOW MENU */
+.menu.show {
+
+    display: flex;
+
+}
