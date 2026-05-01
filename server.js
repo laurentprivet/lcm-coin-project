@@ -4,7 +4,7 @@ const path = require("path");
 const bcrypt = require("bcryptjs");
 const multer = require("multer");
 const app = express();
-
+let latestVideo = null;
 // ================= ADMIN =================
 const ADMIN = {
     username: "admin",
@@ -258,9 +258,11 @@ app.post("/upload-video", upload.single("video"), (req, res) => {
         return res.json({ message: "No video uploaded ❌" });
     }
 
+    latestVideo = "/uploads/" + req.file.filename;
+
     res.json({
         message: "Video uploaded successfully ✅",
-        file: "/uploads/" + req.file.filename
+        file: latestVideo
     });
 
 });
@@ -532,6 +534,11 @@ app.get("/leaderboard", async (req, res) => {
 
     }
 
+});
+app.get("/latest-video", (req, res) => {
+    res.json({
+        video: latestVideo
+    });
 });
 
 // ================= ACTIVE USERS =================

@@ -121,6 +121,17 @@
             <span id="balance">0</span>
             LCM
         </p>
+        <hr>
+
+<h3>🎥 Latest LCM Announcement</h3>
+
+<video id="announcementVideo" controls width="100%" style="display:none;">
+    <source id="videoSource" src="">
+</video>
+
+<p id="noVideo">No announcement yet</p>
+
+<hr>
 
         <p>
             ⭐ Level:
@@ -189,6 +200,29 @@
 
 <!-- MAIN SCRIPT -->
 <script src="script.js"></script>
+function loadLatestVideo() {
+
+    fetch("/latest-video")
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.video) {
+
+            document.getElementById("announcementVideo").style.display = "block";
+            document.getElementById("noVideo").style.display = "none";
+
+            document.getElementById("videoSource").src = data.video;
+
+            document.getElementById("announcementVideo").load();
+
+        }
+
+    });
+
+}
+
+// run when page loads
+loadLatestVideo();
 
 <!-- 📢 ANNOUNCEMENT SCRIPT -->
 <script>
