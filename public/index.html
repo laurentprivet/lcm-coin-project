@@ -6,6 +6,7 @@
 </head>
 
 <body>
+
 <!-- ☰ MOBILE MENU BUTTON -->
 <div class="menu-icon" onclick="toggleMenu()">
     ☰
@@ -41,7 +42,12 @@
         <h3>Account Access</h3>
 
         <input id="username" placeholder="Username">
-        <input id="password" type="password" placeholder="Password">
+
+        <input
+            id="password"
+            type="password"
+            placeholder="Password"
+        >
 
         <div class="buttons">
 
@@ -102,9 +108,11 @@
                 </svg>
 
                 <div class="coin-inner">
+
                     <div class="coin-center">
                         LCM
                     </div>
+
                 </div>
 
                 <div class="coin-bottom">
@@ -121,24 +129,33 @@
             <span id="balance">0</span>
             LCM
         </p>
-        <hr>
-
-<h3>🎥 Latest LCM Announcement</h3>
-
-<video id="announcementVideo" controls width="100%" style="display:none;">
-    <source id="videoSource" src="">
-</video>
-
-<p id="noVideo">No announcement yet</p>
-
-<hr>
 
         <p>
             ⭐ Level:
             <span id="level">1</span>
         </p>
 
+        <!-- 🎥 VIDEO ANNOUNCEMENT -->
+        <hr>
+
+        <h3>🎥 Latest LCM Announcement</h3>
+
+        <video
+            id="announcementVideo"
+            controls
+            width="100%"
+            style="display:none;"
+        >
+            <source id="videoSource" src="">
+        </video>
+
+        <p id="noVideo">
+            No announcement yet
+        </p>
+
         <!-- REFERRALS -->
+        <hr>
+
         <p>
             👥 Referrals:
             <span id="refCount">0</span>
@@ -150,7 +167,9 @@
             LCM
         </p>
 
-        <p>🔗 Your Referral Link:</p>
+        <p>
+            🔗 Your Referral Link:
+        </p>
 
         <input id="refLink" readonly>
 
@@ -166,30 +185,49 @@
         <!-- MESSAGE -->
         <p id="message"></p>
 
+        <!-- TRANSFER -->
+        <hr>
+
+        <h3>💳 Transfer LCM</h3>
+
+        <input
+            id="receiver"
+            placeholder="Receiver Username"
+        >
+
+        <input
+            id="sendAmount"
+            type="number"
+            placeholder="Amount"
+        >
+
+        <button onclick="transferCoins()">
+            Send LCM
+        </button>
+
+        <!-- WITHDRAW -->
+        <hr>
+
+        <h3>💵 Withdrawal Request</h3>
+
+        <input
+            id="withdrawAmount"
+            type="number"
+            placeholder="Amount"
+        >
+
+        <input
+            id="walletAddress"
+            placeholder="Wallet Address"
+        >
+
+        <button onclick="withdrawCoins()">
+            Request Withdrawal
+        </button>
+
         <!-- LOGOUT -->
-         <hr>
+        <hr>
 
-<h3>💳 Transfer LCM</h3>
-
-<input id="receiver" placeholder="Receiver Username">
-
-<input id="sendAmount" type="number" placeholder="Amount">
-
-<button onclick="transferCoins()">
-    Send LCM
-</button>
-
-<hr>
-
-<h3>💵 Withdrawal Request</h3>
-
-<input id="withdrawAmount" type="number" placeholder="Amount">
-
-<input id="walletAddress" placeholder="Wallet Address">
-
-<button onclick="withdrawCoins()">
-    Request Withdrawal
-</button>
         <button onclick="logout()">
             🚪 Logout
         </button>
@@ -200,6 +238,11 @@
 
 <!-- MAIN SCRIPT -->
 <script src="script.js"></script>
+
+<!-- PAGE SCRIPT -->
+<script>
+
+// ================= LOAD VIDEO =================
 function loadLatestVideo() {
 
     fetch("/latest-video")
@@ -208,24 +251,27 @@ function loadLatestVideo() {
 
         if (data.video) {
 
-            document.getElementById("announcementVideo").style.display = "block";
-            document.getElementById("noVideo").style.display = "none";
+            document.getElementById(
+                "announcementVideo"
+            ).style.display = "block";
 
-            document.getElementById("videoSource").src = data.video;
+            document.getElementById(
+                "noVideo"
+            ).style.display = "none";
 
-            document.getElementById("announcementVideo").load();
+            document.getElementById(
+                "videoSource"
+            ).src = data.video;
+
+            document.getElementById(
+                "announcementVideo"
+            ).load();
 
         }
 
     });
 
 }
-
-// run when page loads
-loadLatestVideo();
-
-<!-- 📢 ANNOUNCEMENT SCRIPT -->
-<script>
 
 // ================= LOAD ANNOUNCEMENT =================
 function loadAnnouncement() {
@@ -244,6 +290,7 @@ function loadAnnouncement() {
 
 // FIRST LOAD
 loadAnnouncement();
+loadLatestVideo();
 
 // AUTO REFRESH
 setInterval(loadAnnouncement, 5000);
