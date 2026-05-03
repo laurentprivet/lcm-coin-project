@@ -597,7 +597,6 @@ app.post("/user-info", async (req, res) => {
     }
 
 });
-
 // ================= MINE =================
 app.post("/mine", async (req, res) => {
 
@@ -622,33 +621,28 @@ app.post("/mine", async (req, res) => {
 
         const now = Date.now();
 
-        // 24 HOURS
-        const cooldown = 24 * 60 * 60 * 1000;
+        // ⏳ COOLDOWN (10 seconds for testing - change later to 24h if needed)
+        const cooldown = 24 * 60 * 60 * 1000; // 24 hours
 
-        // Cooldown check
-        if (
-            user.lastMine &&
-            now - user.lastMine < cooldown
-        ) {
+        if (user.lastMine && now - user.lastMine < cooldown) {
 
-            const remaining = Math.ceil(
-                (cooldown - (now - user.lastMine)) / 1000
-            );
+            const remaining = Math.ceil((cooldown - (now - user.lastMine)) / 1000);
 
             return res.json({
-                message: "Wait cooldown ❌",
+                message: `⏳ You already mined. Come back in ${Math.ceil(remaining / 3600)} hour(s)`,
                 coins: user.coins,
                 level: user.level,
                 remaining
             });
         }
 
-        // Mining reward
+        // 🪙 Mining reward logic
         const reward = user.level * 2;
 
         user.coins += reward;
         user.totalMined += reward;
 
+        // IMPORTANT FIX (cooldown tracking)
         user.lastMine = now;
         user.lastActive = now;
 
