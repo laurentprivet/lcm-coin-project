@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
+
     <title>Admin Panel</title>
+
     <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
+
 <a href="whitepaper.html">📄 Whitepaper</a>
+
 <div class="container">
 
     <h1>🛠️ Admin Dashboard</h1>
@@ -16,70 +21,97 @@
 
         <h3>Admin Login</h3>
 
-        <input id="adminUser" placeholder="Username">
-        <input id="adminPass" type="password" placeholder="Password">
+        <input
+            id="adminUser"
+            placeholder="Username"
+        >
 
-        <button onclick="adminLogin()">Login</button>
+        <input
+            id="adminPass"
+            type="password"
+            placeholder="Password"
+        >
+
+        <button onclick="adminLogin()">
+            Login
+        </button>
 
         <p id="adminMsg"></p>
 
     </div>
 
     <!-- DASHBOARD -->
-     <!-- 📢 ANNOUNCEMENT -->
-<div class="card">
-
-    <h3>📢 Send Announcement</h3>
-
-    <textarea
-        id="announcementText"
-        placeholder="Write announcement..."
-        style="
-            width:100%;
-            height:100px;
-            padding:10px;
-            border-radius:10px;
-            margin-top:10px;
-        "
-    ></textarea>
-
-    <button onclick="sendAnnouncement()">
-        Send Announcement
-    </button>
-
-</div>
-<hr>
-
-<h3>🎥 Video Announcement</h3>
-
-<input type="file" id="videoFile">
-
-<button onclick="uploadVideo()">Upload Video</button>
-
-<p id="videoMsg"></p>
     <div id="adminPanel" class="card" style="display:none;">
+
+        <!-- 📢 ANNOUNCEMENT -->
+        <div class="card">
+
+            <h3>📢 Send Announcement</h3>
+
+            <textarea
+                id="announcementText"
+                placeholder="Write announcement..."
+                style="
+                    width:100%;
+                    height:100px;
+                    padding:10px;
+                    border-radius:10px;
+                    margin-top:10px;
+                "
+            ></textarea>
+
+            <button onclick="sendAnnouncement()">
+                Send Announcement
+            </button>
+
+        </div>
+
+        <!-- 🎥 VIDEO -->
+        <hr>
+
+        <h3>🎥 Video Announcement</h3>
+
+        <input type="file" id="videoFile">
+
+        <button onclick="uploadVideo()">
+            Upload Video
+        </button>
+
+        <p id="videoMsg"></p>
 
         <!-- ANALYTICS -->
         <div class="stats">
 
             <div class="stat-box">
+
                 <h3 id="totalUsers">0</h3>
+
                 <p>👥 Total Users</p>
+
             </div>
 
             <div class="stat-box">
+
                 <h3 id="totalCoins">0</h3>
+
                 <p>💰 Total Coins</p>
+
             </div>
 
             <div class="stat-box">
+
                 <h3 id="onlineUsers">0</h3>
+
                 <p>🟢 Online Users</p>
+
             </div>
 
             <div class="stat-box">
+
                 <h3 id="totalMined">0</h3>
+
                 <p>⛏️ Total Mined</p>
+
             </div>
 
         </div>
@@ -92,12 +124,14 @@
             <thead>
 
                 <tr>
+
                     <th>Username</th>
                     <th>Coins</th>
                     <th>Level</th>
                     <th>Referrals</th>
                     <th>Action</th>
                     <th>Balance Control</th>
+
                 </tr>
 
             </thead>
@@ -123,29 +157,47 @@
     </div>
 
 </div>
+
+<script>
+
+// ================= VIDEO UPLOAD =================
 function uploadVideo() {
 
-    const fileInput = document.getElementById("videoFile");
+    const fileInput =
+        document.getElementById("videoFile");
+
     const formData = new FormData();
 
-    formData.append("video", fileInput.files[0]);
+    formData.append(
+        "video",
+        fileInput.files[0]
+    );
 
     fetch("/upload-video", {
+
         method: "POST",
+
         body: formData
+
     })
     .then(res => res.json())
     .then(data => {
-        document.getElementById("videoMsg").innerText = data.message;
+
+        document.getElementById(
+            "videoMsg"
+        ).innerText = data.message;
+
     });
 
 }
-<script>
-    // ================= SEND ANNOUNCEMENT =================
+
+// ================= SEND ANNOUNCEMENT =================
 function sendAnnouncement() {
 
     const message =
-        document.getElementById("announcementText").value;
+        document.getElementById(
+            "announcementText"
+        ).value;
 
     fetch("/send-announcement", {
 
@@ -155,7 +207,9 @@ function sendAnnouncement() {
             "Content-Type":"application/json"
         },
 
-        body: JSON.stringify({ message })
+        body: JSON.stringify({
+            message
+        })
 
     })
     .then(r => r.json())
@@ -172,8 +226,15 @@ let adminInterval = null;
 // ================= ADMIN LOGIN =================
 function adminLogin() {
 
-    const username = document.getElementById("adminUser").value;
-    const password = document.getElementById("adminPass").value;
+    const username =
+        document.getElementById(
+            "adminUser"
+        ).value;
+
+    const password =
+        document.getElementById(
+            "adminPass"
+        ).value;
 
     fetch("/admin-login", {
 
@@ -194,15 +255,21 @@ function adminLogin() {
 
         if (d.ok) {
 
-            document.getElementById("adminLogin").style.display = "none";
+            document.getElementById(
+                "adminLogin"
+            ).style.display = "none";
 
-            document.getElementById("adminPanel").style.display = "block";
+            document.getElementById(
+                "adminPanel"
+            ).style.display = "block";
 
             startAutoRefresh();
 
         } else {
 
-            document.getElementById("adminMsg").innerText = d.message;
+            document.getElementById(
+                "adminMsg"
+            ).innerText = d.message;
 
         }
 
@@ -219,7 +286,9 @@ function startAutoRefresh() {
     loadAnalytics();
 
     if (adminInterval) {
+
         clearInterval(adminInterval);
+
     }
 
     adminInterval = setInterval(() => {
@@ -240,7 +309,10 @@ function loadUsers() {
     .then(r => r.json())
     .then(users => {
 
-        const table = document.getElementById("userTable");
+        const table =
+            document.getElementById(
+                "userTable"
+            );
 
         table.innerHTML = "";
 
@@ -297,7 +369,10 @@ function loadLeaderboard() {
     .then(r => r.json())
     .then(users => {
 
-        const list = document.getElementById("leaderboard");
+        const list =
+            document.getElementById(
+                "leaderboard"
+            );
 
         list.innerHTML = "";
 
@@ -322,7 +397,10 @@ function loadActive() {
     .then(r => r.json())
     .then(users => {
 
-        const list = document.getElementById("activeUsers");
+        const list =
+            document.getElementById(
+                "activeUsers"
+            );
 
         list.innerHTML = "";
 
@@ -334,7 +412,9 @@ function loadActive() {
 
         });
 
-        document.getElementById("onlineUsers").innerText = users.length;
+        document.getElementById(
+            "onlineUsers"
+        ).innerText = users.length;
 
     });
 
@@ -347,7 +427,9 @@ function loadAnalytics() {
     .then(r => r.json())
     .then(users => {
 
-        document.getElementById("totalUsers").innerText = users.length;
+        document.getElementById(
+            "totalUsers"
+        ).innerText = users.length;
 
         let totalCoins = 0;
         let totalMined = 0;
@@ -359,9 +441,13 @@ function loadAnalytics() {
 
         });
 
-        document.getElementById("totalCoins").innerText = totalCoins;
+        document.getElementById(
+            "totalCoins"
+        ).innerText = totalCoins;
 
-        document.getElementById("totalMined").innerText = totalMined;
+        document.getElementById(
+            "totalMined"
+        ).innerText = totalMined;
 
     });
 
