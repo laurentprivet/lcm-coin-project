@@ -36,6 +36,36 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+// ================= UPLOAD VIDEO =================
+app.post("/upload-video", upload.single("video"), (req, res) => {
+
+    try {
+
+        if (!req.file) {
+            return res.json({
+                message: "No file uploaded ❌"
+            });
+        }
+
+        // Save path
+        latestVideo = "/uploads/" + req.file.filename;
+
+        res.json({
+            message: "Video uploaded successfully ✅",
+            video: latestVideo
+        });
+
+    } catch (err) {
+
+        console.log(err);
+
+        res.json({
+            message: "Upload error ❌"
+        });
+
+    }
+
+});
 
 // ================= MONGODB =================
 mongoose.connect("mongodb+srv://laurentcity:police1234@cluster0.i3e40ch.mongodb.net/?retryWrites=true&w=majority")
