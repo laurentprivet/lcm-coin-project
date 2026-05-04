@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const multer = require("multer");
 const app = express();
 let latestVideo = null;
+let videoTime = null;
 // ================= ADMIN =================
 const ADMIN = {
     username: "admin",
@@ -39,21 +40,18 @@ const upload = multer({ storage });
 // ================= UPLOAD VIDEO =================
 app.post("/upload-video", upload.single("video"), (req, res) => {
 
-    try {
+    if (!req.file) {
+        return res.json({ message: "No file uploaded ❌" });
+    }
 
-        if (!req.file) {
-            return res.json({
-                message: "No file uploaded ❌"
-            });
-        }
+    latestVideo = "/uploads/" + req.file.filename;
+    videoTime = Date.now();
 
-        // Save path
-        latestVideo = "/uploads/" + req.file.filename;
+    res.json({
+        message: "Video uploaded ✅"
+    });
 
-        res.json({
-            message: "Video uploaded successfully ✅",
-            video: latestVideo
-        });
+});
 
     } catch (err) {
 
@@ -566,10 +564,10 @@ app.get("/leaderboard", async (req, res) => {
 });
 app.get("/latest-video", (req, res) => {
     res.json({
-        video: latestVideo
+        video: latestVideo,
+        time: videoTime
     });
 });
-
 // ================= ACTIVE USERS =================
 app.get("/active-users", async (req, res) => {
 

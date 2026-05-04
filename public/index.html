@@ -27,7 +27,6 @@
     <div class="card">
 
         <h3>📢 Latest Announcement</h3>
-
         <p id="announcementBox">
             Loading announcement...
         </p>
@@ -139,14 +138,11 @@
         <hr>
 
         <h3>🎥 Latest LCM Announcement</h3>
+        <h3 id="liveLabel">📺 RECORDED</h3>
 
-        <video
-            id="announcementVideo"
-            controls
-            width="100%"
-            style="display:none;"
-        >
-            <source id="videoSource" src="">
+        <video 
+        id="announcementVideo" controls autoplay muted width="100%" style="display:none;">
+        <source id="videoSource" src="">
         </video>
 
         <p id="noVideo">
@@ -290,7 +286,45 @@ function loadAnnouncement() {
 
 // FIRST LOAD
 loadAnnouncement();
+<script>
+
+let currentVideo = "";
+
+function loadLatestVideo() {
+
+    fetch("/latest-video")
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.video && data.video !== currentVideo) {
+
+            currentVideo = data.video;
+
+            const now = Date.now();
+            const isLive = (now - data.time) < 5 * 60 * 1000;
+
+            if (isLive) {
+                document.getElementById("liveLabel").innerText = "🔴 LIVE NOW";
+            } else {
+                document.getElementById("liveLabel").innerText = "📺 RECORDED";
+            }
+
+            document.getElementById("announcementVideo").style.display = "block";
+            document.getElementById("noVideo").style.display = "none";
+
+            document.getElementById("videoSource").src = data.video;
+            document.getElementById("announcementVideo").load();
+        }
+    });
+}
+
+// AUTO REFRESH
+setInterval(loadLatestVideo, 3000);
+
+// FIRST LOAD
 loadLatestVideo();
+
+</script>
 
 // AUTO REFRESH
 setInterval(loadAnnouncement, 5000);
